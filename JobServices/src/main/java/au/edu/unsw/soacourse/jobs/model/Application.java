@@ -17,24 +17,19 @@ public class Application {
 	private String jobId;
 	private String candidateDetails;
 	private String coverLetter;
-	private String received;
-	private String inReview;
-	private String accpetReject;
+	private int status; // received, inReview, accept/reject
 
 	public Application() {
 
 	}
 
-	public Application(String appId, String jobId, String candidateDetails, String coverLetter, String received,
-			String inReview, String accpetReject) {
+	public Application(String appId, String jobId, String candidateDetails, String coverLetter, int status) {
 		super();
 		this.appId = appId;
 		this.jobId = jobId;
 		this.candidateDetails = candidateDetails;
 		this.coverLetter = coverLetter;
-		this.received = received;
-		this.inReview = inReview;
-		this.accpetReject = accpetReject;
+		this.status = status;
 	}
 
 	public String getAppId() {
@@ -69,28 +64,13 @@ public class Application {
 		this.coverLetter = coverLetter;
 	}
 
-	public String getReceived() {
-		return received;
+	public int getStatus() {
+		return status;
 	}
 
-	public void setReceived(String received) {
-		this.received = received;
+	public void setStatus(int status) {
+		this.status = status;
 	}
 
-	public String getInReview() {
-		return inReview;
-	}
-
-	public void setInReview(String inReview) {
-		this.inReview = inReview;
-	}
-
-	public String getAccpetReject() {
-		return accpetReject;
-	}
-
-	public void setAccpetReject(String accpetReject) {
-		this.accpetReject = accpetReject;
-	}
-
+	
 }

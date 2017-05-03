@@ -11,26 +11,21 @@ public class Posting {
 	 * sent-invitations, etc.). Have a look at a job site like seek.com.au or
 	 * LinkedIn to see the types of information relevant to a job posting.
 	 */
-	
+
 	private String jobId;
 	private String companyName;
 	private String salaryRate;
 	private String positionType;
 	private String location;
 	private String descriptions;
-	private String created;
-	private String open;
-	private String inReview;
-	private String processed;
-	private String sentInvitations;
+	private int status; // created, open, inReview, processed,
+							// sentInvitations
 
 	public Posting() {
-
 	}
 
 	public Posting(String jobId, String companyName, String salaryRate, String positionType, String location,
-			String descriptions, String created, String open, String inReview, String processed,
-			String sentInvitations) {
+			String descriptions, int status) {
 		super();
 		this.jobId = jobId;
 		this.companyName = companyName;
@@ -38,11 +33,7 @@ public class Posting {
 		this.positionType = positionType;
 		this.location = location;
 		this.descriptions = descriptions;
-		this.created = created;
-		this.open = open;
-		this.inReview = inReview;
-		this.processed = processed;
-		this.sentInvitations = sentInvitations;
+		this.status = status;
 	}
 
 	public String getJobId() {
@@ -93,44 +84,12 @@ public class Posting {
 		this.descriptions = descriptions;
 	}
 
-	public String getCreated() {
-		return created;
+	public int getStatus() {
+		return status;
 	}
 
-	public void setCreated(String created) {
-		this.created = created;
-	}
-
-	public String getOpen() {
-		return open;
-	}
-
-	public void setOpen(String open) {
-		this.open = open;
-	}
-
-	public String getInReview() {
-		return inReview;
-	}
-
-	public void setInReview(String inReview) {
-		this.inReview = inReview;
-	}
-
-	public String getProcessed() {
-		return processed;
-	}
-
-	public void setProcessed(String processed) {
-		this.processed = processed;
-	}
-
-	public String getSentInvitations() {
-		return sentInvitations;
-	}
-
-	public void setSentInvitations(String sentInvitations) {
-		this.sentInvitations = sentInvitations;
+	public void setStatus(int status) {
+		this.status = status;
 	}
 
 }

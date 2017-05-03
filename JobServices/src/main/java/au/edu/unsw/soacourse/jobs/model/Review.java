@@ -14,22 +14,19 @@ public class Review {
 	private String appId;
 	private String reviewerDetails;
 	private String comments;
-	private String recommend;
-	private String notRecommend;
+	private int decision; // recommend/not recommend
 
 	public Review() {
 
 	}
 
-	public Review(String reviewId, String appId, String reviewerDetails, String comments, String recommend,
-			String notRecommend) {
+	public Review(String reviewId, String appId, String reviewerDetails, String comments, int decision) {
 		super();
 		this.reviewId = reviewId;
 		this.appId = appId;
 		this.reviewerDetails = reviewerDetails;
 		this.comments = comments;
-		this.recommend = recommend;
-		this.notRecommend = notRecommend;
+		this.decision = decision;
 	}
 
 	public String getReviewId() {
@@ -64,20 +61,13 @@ public class Review {
 		this.comments = comments;
 	}
 
-	public String getRecommend() {
-		return recommend;
+	public int getDecision() {
+		return decision;
 	}
 
-	public void setRecommend(String recommend) {
-		this.recommend = recommend;
+	public void setDecision(int decision) {
+		this.decision = decision;
 	}
 
-	public String getNotRecommend() {
-		return notRecommend;
-	}
-
-	public void setNotRecommend(String notRecommend) {
-		this.notRecommend = notRecommend;
-	}
-
+	
 }
