@@ -1,5 +1,7 @@
 # RESTfulAssignment
-Team Anonymous, SOA Course Assignment RESTful API
 
-Hengji Liu, z5043667
-Igit Soeriasaputra, 
+SOA Course Assignment, RESTful API
+
+Team Anonymous:
+- Hengji Liu, z5043667
+- Igit Soeriasaputra, 
