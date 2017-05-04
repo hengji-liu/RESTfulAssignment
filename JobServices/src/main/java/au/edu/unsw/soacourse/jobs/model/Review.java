@@ -14,20 +14,7 @@ public class Review {
 	private String appId;
 	private String reviewerDetails;
 	private String comments;
-	private int decision; // recommend/not recommend
-
-	public Review() {
-
-	}
-
-	public Review(String reviewId, String appId, String reviewerDetails, String comments, int decision) {
-		super();
-		this.reviewId = reviewId;
-		this.appId = appId;
-		this.reviewerDetails = reviewerDetails;
-		this.comments = comments;
-		this.decision = decision;
-	}
+	private String decision; // recommend/not recommend
 
 	public String getReviewId() {
 		return reviewId;
@@ -61,13 +48,12 @@ public class Review {
 		this.comments = comments;
 	}
 
-	public int getDecision() {
+	public String getDecision() {
 		return decision;
 	}
 
-	public void setDecision(int decision) {
+	public void setDecision(String decision) {
 		this.decision = decision;
 	}
 
-	
 }

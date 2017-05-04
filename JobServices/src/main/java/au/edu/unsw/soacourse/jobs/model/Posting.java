@@ -18,77 +18,49 @@ public class Posting {
 	private String positionType;
 	private String location;
 	private String descriptions;
-	private int status; // created, open, inReview, processed,
-							// sentInvitations
-
-	public Posting() {
-	}
-
-	public Posting(String jobId, String companyName, String salaryRate, String positionType, String location,
-			String descriptions, int status) {
-		super();
-		this.jobId = jobId;
-		this.companyName = companyName;
-		this.salaryRate = salaryRate;
-		this.positionType = positionType;
-		this.location = location;
-		this.descriptions = descriptions;
-		this.status = status;
-	}
-
+	private String status; // created, open, inReview, processed,
+	// sentInvitations
+	
 	public String getJobId() {
 		return jobId;
 	}
-
 	public void setJobId(String jobId) {
 		this.jobId = jobId;
 	}
-
 	public String getCompanyName() {
 		return companyName;
 	}
-
 	public void setCompanyName(String companyName) {
 		this.companyName = companyName;
 	}
-
 	public String getSalaryRate() {
 		return salaryRate;
 	}
-
 	public void setSalaryRate(String salaryRate) {
 		this.salaryRate = salaryRate;
 	}
-
 	public String getPositionType() {
 		return positionType;
 	}
-
 	public void setPositionType(String positionType) {
 		this.positionType = positionType;
 	}
-
 	public String getLocation() {
 		return location;
 	}
-
 	public void setLocation(String location) {
 		this.location = location;
 	}
-
 	public String getDescriptions() {
 		return descriptions;
 	}
-
 	public void setDescriptions(String descriptions) {
 		this.descriptions = descriptions;
 	}
-
-	public int getStatus() {
+	public String getStatus() {
 		return status;
 	}
-
-	public void setStatus(int status) {
+	public void setStatus(String status) {
 		this.status = status;
 	}
 

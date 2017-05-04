@@ -17,20 +17,7 @@ public class Application {
 	private String jobId;
 	private String candidateDetails;
 	private String coverLetter;
-	private int status; // received, inReview, accept/reject
-
-	public Application() {
-
-	}
-
-	public Application(String appId, String jobId, String candidateDetails, String coverLetter, int status) {
-		super();
-		this.appId = appId;
-		this.jobId = jobId;
-		this.candidateDetails = candidateDetails;
-		this.coverLetter = coverLetter;
-		this.status = status;
-	}
+	private String status; // received, inReview, accept/reject
 
 	public String getAppId() {
 		return appId;
@@ -64,13 +51,12 @@ public class Application {
 		this.coverLetter = coverLetter;
 	}
 
-	public int getStatus() {
+	public String getStatus() {
 		return status;
 	}
 
-	public void setStatus(int status) {
+	public void setStatus(String status) {
 		this.status = status;
 	}
 
-	
 }
