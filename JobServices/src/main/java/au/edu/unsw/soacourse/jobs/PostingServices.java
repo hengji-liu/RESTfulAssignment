@@ -67,7 +67,10 @@ public class PostingServices {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// validation, status can only be empty or number 0(created)/1(open)
-		if (null != obj.getStatus()) {
+		if (null == obj.getStatus() || "".equals(obj.getStatus())) {
+			// default status is created
+			obj.setStatus(String.valueOf(PostingStatus.CREATED));
+		} else {
 			try {
 				int status = Integer.parseInt(obj.getStatus());
 				if (PostingStatus.OPEN < status)
@@ -75,8 +78,6 @@ public class PostingServices {
 			} catch (NumberFormatException e) {
 				return Response.status(Status.BAD_REQUEST).build();
 			}
-		} else { // default status is created
-			obj.setStatus(String.valueOf(PostingStatus.CREATED));
 		}
 		// insert
 		int insertedId = dao.insert(obj);
