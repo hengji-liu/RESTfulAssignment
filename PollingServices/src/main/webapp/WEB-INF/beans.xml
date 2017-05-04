@@ -6,8 +6,8 @@
     <bean class="org.springframework.web.context.support.ServletContextPropertyPlaceholderConfigurer"/>
     <bean class="org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer"/>
     <jaxrs:server id="services" address="/">
-        <jaxrs:serviceBeans>
-            <bean class="au.edu.unsw.soacourse.polling.HelloWorld"/>
+         <jaxrs:serviceBeans>
+            <bean class="au.edu.unsw.soacourse.polling.Polling"/>
         </jaxrs:serviceBeans>
         <jaxrs:providers>
             <bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
