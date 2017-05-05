@@ -38,9 +38,9 @@ public class PostingServices {
 		Posting p = dao.findById(id);
 		if (null != p) {
 			if (type.equals(MediaType.WILDCARD) || type.equals(MediaType.APPLICATION_JSON)) {
-				return Response.status(Status.OK).entity(MediaType.APPLICATION_JSON).build();
+				return Response.status(Status.OK).entity(p).type(MediaType.APPLICATION_JSON).build();
 			} else if (type.equals(MediaType.APPLICATION_XML)) {
-				return Response.status(Status.OK).entity(MediaType.APPLICATION_XML).build();
+				return Response.status(Status.OK).entity(p).type(MediaType.APPLICATION_XML).build();
 			} else {// other type not supported
 				System.out.println(type);
 				return Response.status(Status.BAD_REQUEST).build();
@@ -104,8 +104,12 @@ public class PostingServices {
 		} catch (NumberFormatException e) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
-		// TODO check item exists, NOT FOUND
+		// check item exists
+		Posting p = dao.findById(id);
+		if (null == p)
+			return Response.status(Status.NOT_FOUND).build();
 		// TODO check no application is associated with this posting, FORBIDDEN
+		
 		// get item
 		int affectedRowNum = dao.delete(id);
 		if (0 == affectedRowNum) { // delete fail
@@ -116,10 +120,17 @@ public class PostingServices {
 	}
 
 	@PUT
-	@Path("/posting}")
+	@Path("/posting/{id}")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-	public Response put() {
-		// TODO Auto-generated method stub
+	public Response put(@PathParam("id") String id, Posting obj) {
+		// validation, id should be an int
+		try {
+			Integer.parseInt(id);
+		} catch (NumberFormatException e) {
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+		System.out.println(id);
+		System.out.println(obj.getDescriptions());
 		return null;
 	}
 
