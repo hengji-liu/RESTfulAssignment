@@ -12,7 +12,6 @@ Job Services:
 
 |Method|URL|Comment|
 |------|---|-------|
-<<<<<<< HEAD
 
 |GET|/posting/{id}|gives back xml/json 
 <br> BAD REQUEST if wrong syntax or type 
@@ -35,7 +34,3 @@ Job Services:
 <br> INTERNAL SERVER ERROR if insert fail
 <br> NO CONTENT if successful|
 
-=======
-|GET|/posting/{id}|gives back xml/json|
-|POST|/posting|accepts xml/json <br> gives back a link in the header <br> *jobId* must be null or empty <br> *status* can only be null or empty or number 0(created)/1(open) <br> other fields must NOT be null|
->>>>>>> origin/master
