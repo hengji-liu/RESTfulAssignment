@@ -38,15 +38,15 @@ public class PostingServices {
 		Posting p = dao.findById(id);
 		if (null != p) {
 			if (type.equals(MediaType.WILDCARD) || type.equals(MediaType.APPLICATION_JSON)) {
-				return Response.ok(p, MediaType.APPLICATION_JSON).build();
+				return Response.status(Status.OK).entity(MediaType.APPLICATION_JSON).build();
 			} else if (type.equals(MediaType.APPLICATION_XML)) {
-				return Response.ok(p, MediaType.APPLICATION_XML).build();
+				return Response.status(Status.OK).entity(MediaType.APPLICATION_XML).build();
 			} else {// other type not supported
 				System.out.println(type);
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 		} else {// item not found
-			return Response.noContent().build();
+			return Response.status(Status.NOT_FOUND).build();
 		}
 	}
 
@@ -88,7 +88,7 @@ public class PostingServices {
 			} catch (URISyntaxException e) {
 				e.printStackTrace();
 			}
-			return Response.created(uri).build();
+			return Response.status(Status.CREATED).location(uri).build();
 		}
 		// insert fail
 		return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -97,9 +97,22 @@ public class PostingServices {
 	@DELETE
 	@Path("/posting/{id}")
 	@Consumes(MediaType.TEXT_PLAIN)
-	public void del(@PathParam("id") String id) {
-		// TODO Auto-generated method stub
-
+	public Response del(@PathParam("id") String id) {
+		// validation, id should be an int
+		try {
+			Integer.parseInt(id);
+		} catch (NumberFormatException e) {
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+		// TODO check item exists, NOT FOUND
+		// TODO check no application is associated with this posting, FORBIDDEN
+		// get item
+		int affectedRowNum = dao.delete(id);
+		if (0 == affectedRowNum) { // delete fail
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		} else {
+			return Response.status(Status.NO_CONTENT).build();
+		}
 	}
 
 	@PUT
