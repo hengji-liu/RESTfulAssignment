@@ -109,10 +109,10 @@ public class PostingServices {
 		if (null == p)
 			return Response.status(Status.NOT_FOUND).build();
 		// TODO check no application is associated with this posting, FORBIDDEN
-		
+
 		// get item
-		int affectedRowNum = dao.delete(id);
-		if (0 == affectedRowNum) { // delete fail
+		int affectedRowCount = dao.delete(id);
+		if (0 == affectedRowCount) { // delete fail
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		} else {
 			return Response.status(Status.NO_CONTENT).build();
@@ -129,9 +129,39 @@ public class PostingServices {
 		} catch (NumberFormatException e) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
-		System.out.println(id);
-		System.out.println(obj.getDescriptions());
-		return null;
+		// validation, jobId must be null or empty
+		if (!(null == obj.getJobId() || "".equals(obj.getJobId())))
+			return Response.status(Status.BAD_REQUEST).build();
+		// validation, has something to update
+		boolean hasUpdate = false;
+		hasUpdate |= (null != obj.getCompanyName());
+		hasUpdate |= (null != obj.getDescriptions());
+		hasUpdate |= (null != obj.getLocation());
+		hasUpdate |= (null != obj.getPositionType());
+		hasUpdate |= (null != obj.getSalaryRate());
+		hasUpdate |= (null != obj.getStatus());
+		if (!hasUpdate)
+			return Response.status(Status.BAD_REQUEST).build();
+		// check item exists
+		Posting p = dao.findById(id);
+		if (null == p)
+			return Response.status(Status.NOT_FOUND).build();
+		// check new status, > current && < max
+		int newStatus = Integer.parseInt(obj.getStatus());
+		int oldStatus = Integer.parseInt(p.getStatus());
+		if (newStatus < oldStatus || newStatus > PostingStatus.SENT_INVITATIONS)
+			return Response.status(Status.FORBIDDEN).build();
+		// TODO check no application is associated with this posting, FORBIDDEN
+
+		// update
+		obj.setJobId(id);
+		int affectedRowCount = dao.update(obj);
+		if (0 == affectedRowCount) { // update fail
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		} else {
+			obj = dao.findById(id);
+			return Response.status(Status.NO_CONTENT).build();
+		}
 	}
 
 	// TODO

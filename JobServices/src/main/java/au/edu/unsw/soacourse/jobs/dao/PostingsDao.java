@@ -72,7 +72,7 @@ public class PostingsDAO {
 	}
 
 	public int delete(String id) {
-		String sql = "DELETE FROM table_name"//
+		String sql = "DELETE FROM postings"//
 				+ " WHERE jobId = ?";
 
 		Connection conn = DBUtil.getConnection();
@@ -88,9 +88,43 @@ public class PostingsDAO {
 		return 0;
 	}
 
-	public Posting update(Posting t) {
-		// TODO Auto-generated method stub
-		return null;
+	public int update(Posting obj) {
+		StringBuffer sql = new StringBuffer("UPDATE postings SET");
+		String companyName = obj.getCompanyName();
+		String descriptions = obj.getDescriptions();
+		String location = obj.getLocation();
+		String positionType = obj.getPositionType();
+		String salaryRate = obj.getSalaryRate();
+		String status = obj.getStatus();
+		if (null != companyName)
+			sql.append(" companyName='" + companyName + "',");
+		if (null != descriptions)
+			sql.append(" descriptions='" + descriptions + "',");
+		if (null != location)
+			sql.append(" location='" + location + "',");
+		if (null != positionType)
+			sql.append(" positionType='" + positionType + "',");
+		if (null != salaryRate)
+			sql.append(" salaryRate='" + salaryRate + "',");
+		if (null != status)
+			sql.append(" status=" + status + ",");
+
+		// remove the last comma
+		sql.deleteCharAt(sql.length() - 1);
+		sql.append(" WHERE jobId=" + obj.getJobId() + ";");
+		System.out.println(sql.toString());
+
+		// update
+		Connection conn = DBUtil.getConnection();
+		try {
+			Statement stmt = conn.createStatement();
+			return stmt.executeUpdate(sql.toString());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DBUtil.closeConnection(conn);
+		}
+		return 0;
 	}
 
 }
