@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 import au.edu.unsw.soacourse.jobs.model.Posting;
 
@@ -14,6 +16,7 @@ public class PostingsDAO {
 		String sql = "SELECT jobId, companyName, salaryRate, positionType, location, descriptions, status" //
 				+ " FROM postings" //
 				+ " WHERE jobId = ?;";
+		System.out.println(sql.toString());
 
 		Connection conn = DBUtil.getConnection();
 		try {
@@ -29,7 +32,6 @@ public class PostingsDAO {
 				p.setLocation(rs.getString("location"));
 				p.setDescriptions(rs.getString("descriptions"));
 				p.setStatus(rs.getString("status"));
-
 				return p;
 			}
 		} catch (SQLException e) {
@@ -44,7 +46,8 @@ public class PostingsDAO {
 	public int insert(Posting obj) {
 		String sql = "INSERT INTO postings" //
 				+ " (companyName, salaryRate, positionType, location, descriptions, status)" //
-				+ " VALUES (?,?,?,?,?,?)";
+				+ " VALUES (?,?,?,?,?,?);";
+		System.out.println(sql.toString());
 
 		Connection conn = DBUtil.getConnection();
 		try {
@@ -74,6 +77,7 @@ public class PostingsDAO {
 	public int delete(String id) {
 		String sql = "DELETE FROM postings"//
 				+ " WHERE jobId = ?";
+		System.out.println(sql.toString());
 
 		Connection conn = DBUtil.getConnection();
 		try {
@@ -127,4 +131,73 @@ public class PostingsDAO {
 		return 0;
 	}
 
+	public List<Posting> findAll() {
+		String sql = "SELECT jobId, companyName, salaryRate, positionType, location, descriptions, status FROM postings;";
+		System.out.println(sql.toString());
+		Connection conn = DBUtil.getConnection();
+		try {
+			List<Posting> list = new ArrayList<>();
+			Statement stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next()) {
+				Posting p = new Posting();
+				p.setJobId(rs.getString("jobId"));
+				p.setCompanyName(rs.getString("companyName"));
+				p.setSalaryRate(rs.getString("salaryRate"));
+				p.setPositionType(rs.getString("positionType"));
+				p.setLocation(rs.getString("location"));
+				p.setDescriptions(rs.getString("descriptions"));
+				p.setStatus(rs.getString("status"));
+				list.add(p);
+			}
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DBUtil.closeConnection(conn);
+		}
+		return null;
+	}
+
+	public List<Posting> search(String keyword, String status) {
+		StringBuffer sql = new StringBuffer(
+				"SELECT jobId, companyName, salaryRate, positionType, location, descriptions, status"//
+						+ " FROM postings WHERE (1=1)");
+		if (null != keyword && !"".equals(keyword)) {
+			sql.append(" AND (" //
+					+ " (companyName LIKE '%" + keyword + "%')"//
+					+ " OR (positionType LIKE '%" + keyword + "%')"//
+					+ " OR (location LIKE '%" + keyword + "%')"//
+					+ " OR (descriptions LIKE '%" + keyword + "%')" + " )");
+		}
+		if (null != status && !"".equals(status)) {
+			sql.append(" AND (status=" + status + ")");
+		}
+		sql.append(';');
+		System.out.println(sql.toString());
+
+		Connection conn = DBUtil.getConnection();
+		try {
+			Statement stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(sql.toString());
+			List<Posting> list = new ArrayList<>();
+			while (rs.next()) {
+				Posting p = new Posting();
+				p.setJobId(rs.getString("jobId"));
+				p.setCompanyName(rs.getString("companyName"));
+				p.setSalaryRate(rs.getString("salaryRate"));
+				p.setPositionType(rs.getString("positionType"));
+				p.setLocation(rs.getString("location"));
+				p.setDescriptions(rs.getString("descriptions"));
+				p.setStatus(rs.getString("status"));
+				list.add(p);
+			}
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DBUtil.closeConnection(conn);
+		}
+		return null;
+	}
 }
