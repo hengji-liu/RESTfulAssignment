@@ -10,7 +10,7 @@ import java.util.List;
 
 import au.edu.unsw.soacourse.jobs.model.Posting;
 
-public class PostingsDAO {
+public class PostingsDao {
 
 	public Posting findById(String id) {
 		String sql = "SELECT jobId, companyName, salaryRate, positionType, location, descriptions, status" //

@@ -18,12 +18,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import au.edu.unsw.soacourse.jobs.dao.PostingsDAO;
+import au.edu.unsw.soacourse.jobs.dao.PostingsDao;
 import au.edu.unsw.soacourse.jobs.model.Posting;
 import au.edu.unsw.soacourse.jobs.model.PostingStatus;
 
 public class PostingServices {
-	private PostingsDAO dao = new PostingsDAO();
+	private PostingsDao dao = new PostingsDao();
 
 	@GET
 	@Path("/posting/{id}")
@@ -36,15 +36,21 @@ public class PostingServices {
 		} catch (NumberFormatException e) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
+		// validation media type
+		if (type.equals(MediaType.WILDCARD) //
+				|| type.equals(MediaType.APPLICATION_JSON) //
+				|| type.equals(MediaType.APPLICATION_XML)) {
+			// do nothing
+		} else {// other type not supported
+			return Response.status(Status.BAD_REQUEST).build();
+		}
 		// get item
 		Posting p = dao.findById(id);
 		if (null != p) {
 			if (type.equals(MediaType.WILDCARD) || type.equals(MediaType.APPLICATION_JSON)) {
 				return Response.status(Status.OK).entity(p).type(MediaType.APPLICATION_JSON).build();
-			} else if (type.equals(MediaType.APPLICATION_XML)) {
+			} else {
 				return Response.status(Status.OK).entity(p).type(MediaType.APPLICATION_XML).build();
-			} else {// other type not supported
-				return Response.status(Status.BAD_REQUEST).build();
 			}
 		} else {// item not found
 			return Response.status(Status.NOT_FOUND).build();
@@ -170,15 +176,19 @@ public class PostingServices {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response search(@HeaderParam("accept") String type, @QueryParam("skills") String skills,
 			@QueryParam("keyword") String keyword, @QueryParam("status") String status) {
+		// validation media type
+		if (type.equals(MediaType.WILDCARD) //
+				|| type.equals(MediaType.APPLICATION_JSON)) {
+			// do nothing
+		} else {// other type not supported
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+
 		// if no query param
 		if ((null == keyword || "".equals(keyword)) && (null == status || "".equals(status))) {
 			List<Posting> list = dao.findAll();
 			if (null != list) {
-				if (type.equals(MediaType.WILDCARD) || type.equals(MediaType.APPLICATION_JSON)) {
-					return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
-				} else {// other type not supported
-					return Response.status(Status.BAD_REQUEST).build();
-				}
+				return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
 			} else {
 				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 			}
@@ -193,16 +203,13 @@ public class PostingServices {
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 		}
+
 		// TODO skills??
 
 		// search on at least one param
 		List<Posting> list = dao.search(keyword, status);
 		if (null != list) {
-			if (type.equals(MediaType.WILDCARD) || type.equals(MediaType.APPLICATION_JSON)) {
-				return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
-			} else {// other type not supported
-				return Response.status(Status.BAD_REQUEST).build();
-			}
+			return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
 		} else {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
