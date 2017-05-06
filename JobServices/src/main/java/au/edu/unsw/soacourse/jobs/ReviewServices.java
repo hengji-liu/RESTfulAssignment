@@ -19,23 +19,26 @@ import javax.ws.rs.core.Response.Status;
 
 import au.edu.unsw.soacourse.jobs.dao.ApplicationsDao;
 import au.edu.unsw.soacourse.jobs.dao.PostingsDao;
+import au.edu.unsw.soacourse.jobs.dao.ReviewsDao;
 import au.edu.unsw.soacourse.jobs.model.Application;
-import au.edu.unsw.soacourse.jobs.model.ApplicationStatus;
 import au.edu.unsw.soacourse.jobs.model.Posting;
 import au.edu.unsw.soacourse.jobs.model.PostingStatus;
+import au.edu.unsw.soacourse.jobs.model.Review;
+import au.edu.unsw.soacourse.jobs.model.ReviewDecisoin;
 
-public class ApplicationServices {
-	private ApplicationsDao aDao = new ApplicationsDao();
+public class ReviewServices {
+	private ReviewsDao rDao = new ReviewsDao();
 	private PostingsDao pDao = new PostingsDao();
+	private ApplicationsDao aDao = new ApplicationsDao();
 
 	@GET
-	@Path("/application/{appId}")
+	@Path("/review/{rId}")
 	@Consumes(MediaType.TEXT_PLAIN)
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-	public Response get(@HeaderParam("accept") String type, @PathParam("appId") String appId) {
-		// validation, appId should be an int
+	public Response get(@HeaderParam("accept") String type, @PathParam("rId") String rId) {
+		// validation, rId should be an int
 		try {
-			Integer.parseInt(appId);
+			Integer.parseInt(rId);
 		} catch (NumberFormatException e) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
@@ -48,12 +51,12 @@ public class ApplicationServices {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// get item
-		Application p = aDao.findById(appId);
-		if (null != p) {
+		Review r = rDao.findById(rId);
+		if (null != r) {
 			if (type.equals(MediaType.WILDCARD) || type.equals(MediaType.APPLICATION_JSON)) {
-				return Response.status(Status.OK).entity(p).type(MediaType.APPLICATION_JSON).build();
+				return Response.status(Status.OK).entity(r).type(MediaType.APPLICATION_JSON).build();
 			} else {
-				return Response.status(Status.OK).entity(p).type(MediaType.APPLICATION_XML).build();
+				return Response.status(Status.OK).entity(r).type(MediaType.APPLICATION_XML).build();
 			}
 		} else {// item not found
 			return Response.status(Status.NOT_FOUND).build();
@@ -61,9 +64,9 @@ public class ApplicationServices {
 	}
 
 	@GET
-	@Path("/applications") // applications?jobId=x
+	@Path("/reviews") // applications?appId=x
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getAppByJob(@HeaderParam("accept") String type, @QueryParam("jobId") String jobId) {
+	public Response getReviewByApp(@HeaderParam("accept") String type, @QueryParam("appId") String appId) {
 		// validation media type
 		if (type.equals(MediaType.WILDCARD) //
 				|| type.equals(MediaType.APPLICATION_JSON)) {
@@ -72,24 +75,24 @@ public class ApplicationServices {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// if no query param, do find all
-		if (null == jobId || "".equals(jobId)) {
-			List<Application> list = aDao.findAll();
+		if (null == appId || "".equals(appId)) {
+			List<Review> list = rDao.findAll();
 			if (null != list) {
 				return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
 			} else {
 				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 			}
 		}
-		// validation, jobId is an valid int
-		if (null != jobId && !"".equals(jobId)) {
+		// validation, appId is an valid int
+		if (null != appId && !"".equals(appId)) {
 			try {
-				Integer.parseInt(jobId);
+				Integer.parseInt(appId);
 			} catch (NumberFormatException e) {
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 		}
 		// search on at least one param
-		List<Application> list = aDao.findByJobId(jobId);
+		List<Review> list = rDao.findByAppId(appId);
 		if (null != list) {
 			return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
 		} else {
@@ -98,40 +101,47 @@ public class ApplicationServices {
 	}
 
 	@POST
-	@Path("/application")
+	@Path("/review")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-	public Response post(Application obj) {
-		// validation, appId must be null or empty
-		if (!(null == obj.getAppId() || "".equals(obj.getAppId())))
+	public Response post(Review obj) {
+		// validation, reviewId must be null or empty
+		if (!(null == obj.getReviewId() || "".equals(obj.getReviewId())))
 			return Response.status(Status.BAD_REQUEST).build();
-		// validation, status must be null or empty
-		if (!(null == obj.getStatus() || "".equals(obj.getStatus())))
-			return Response.status(Status.BAD_REQUEST).build();
-		// validation, jobId must not be null and be an int
-		if (null == obj.getJobId())
+		// validation, appId must not be null and be an int
+		if (null == obj.getAppId())
 			return Response.status(Status.BAD_REQUEST).build();
 		try {
-			Integer.parseInt(obj.getJobId());
+			Integer.parseInt(obj.getAppId());
 		} catch (NumberFormatException e) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// validation, other fields must not be null
-		if (null == obj.getCandidateDetails()//
-				|| null == obj.getCoverLetter()//
-		) {
+		if (null == obj.getReviewerDetails()//
+				|| null == obj.getComments()//
+				|| null == obj.getDecision()) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
-		// check, posting status is open
-		Posting p = pDao.findById(obj.getJobId());
-		if (PostingStatus.OPEN != Integer.parseInt(p.getStatus()))
+		// validation decision must be 0/1
+		try {
+			Integer.parseInt(obj.getDecision());
+		} catch (NumberFormatException e) {
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+		if (ReviewDecisoin.NOT_RECOMMEND != Integer.parseInt(obj.getDecision())
+				&& ReviewDecisoin.RECOMMEND != Integer.parseInt(obj.getDecision())) {
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+		// check, posting status is in review
+		Application a = aDao.findById(obj.getAppId());
+		Posting p = pDao.findById(a.getJobId());
+		if (PostingStatus.IN_REVIEW != Integer.parseInt(p.getStatus()))
 			return Response.status(Status.FORBIDDEN).build();
 		// insert
-		obj.setStatus(String.valueOf(ApplicationStatus.RECEIVED));
-		int insertedId = aDao.insert(obj);
+		int insertedId = rDao.insert(obj);
 		if (0 != insertedId) {
 			URI uri = null;
 			try {
-				uri = new URI("application/" + Integer.toString(insertedId));
+				uri = new URI("review/" + Integer.toString(insertedId));
 			} catch (URISyntaxException e) {
 				e.printStackTrace();
 			}
@@ -142,51 +152,38 @@ public class ApplicationServices {
 	}
 
 	@PUT
-	@Path("/application/{appId}")
+	@Path("/review/{rId}")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-	public Response put(@PathParam("appId") String appId, Application obj) {
-		// validation, appId should be an int
+	public Response put(@PathParam("rId") String rId, Review obj) {
+		// validation, rId should be an int
 		try {
-			Integer.parseInt(appId);
+			Integer.parseInt(rId);
 		} catch (NumberFormatException e) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
-		// validation, appId in payload must be null or empty
-		if (!(null == obj.getAppId() || "".equals(obj.getAppId())))
+		// validation, rId in payload must be null or empty
+		if (!(null == obj.getReviewId() || "".equals(obj.getReviewId())))
 			return Response.status(Status.BAD_REQUEST).build();
 		// validation, has something to update
 		boolean hasUpdate = false;
-		hasUpdate |= (null != obj.getJobId());
-		hasUpdate |= (null != obj.getCandidateDetails());
-		hasUpdate |= (null != obj.getCoverLetter());
-		hasUpdate |= (null != obj.getStatus());
+		hasUpdate |= (null != obj.getReviewerDetails());
+		hasUpdate |= (null != obj.getComments());
+		hasUpdate |= (null != obj.getDecision());
+		hasUpdate |= (null != obj.getAppId());
 		if (!hasUpdate)
 			return Response.status(Status.BAD_REQUEST).build();
-		// validation, jobId should be an int
-		if ( null != obj.getJobId()) {
-			try {
-				Integer.parseInt(obj.getJobId());
-			} catch (NumberFormatException e) {
-				return Response.status(Status.BAD_REQUEST).build();
-			}
-		}
-		// validation, jobId should be an int
-		if ( null != obj.getStatus()) {
-			try {
-				Integer.parseInt(obj.getStatus());
-			} catch (NumberFormatException e) {
-				return Response.status(Status.BAD_REQUEST).build();
-			}
-		}
 		// check item exists
-		Application p = aDao.findById(appId);
-		if (null == p)
+		Review r = rDao.findById(rId);
+		if (null == r)
 			return Response.status(Status.NOT_FOUND).build();
-		// TODO check status, description very vague. FORBIDDEN
-
+		// check, posting status is in review
+		Application a = aDao.findById(obj.getAppId());
+		Posting p = pDao.findById(a.getJobId());
+		if (PostingStatus.IN_REVIEW != Integer.parseInt(p.getStatus()))
+			return Response.status(Status.FORBIDDEN).build();
 		// update
-		obj.setAppId(appId);
-		int affectedRowCount = aDao.update(obj);
+		obj.setReviewId(rId);
+		int affectedRowCount = rDao.update(obj);
 		if (0 == affectedRowCount) { // update fail
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		} else {
