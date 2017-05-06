@@ -9,9 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import au.edu.unsw.soacourse.jobs.model.Application;
-import au.edu.unsw.soacourse.jobs.model.Posting;
 
-public class ApplicationDao {
+public class ApplicationsDao {
 
 	public Application findById(String id) {
 		String sql = "SELECT appId, jobId, candidateDetails, coverLetter, status" //
@@ -126,31 +125,24 @@ public class ApplicationDao {
 		return 0;
 	}
 
-	// TODO
-	public int update(Posting obj) {
-		StringBuffer sql = new StringBuffer("UPDATE postings SET");
-		String companyName = obj.getCompanyName();
-		String descriptions = obj.getDescriptions();
-		String location = obj.getLocation();
-		String positionType = obj.getPositionType();
-		String salaryRate = obj.getSalaryRate();
+	public int update(Application obj) {
+		StringBuffer sql = new StringBuffer("UPDATE applications SET");
+		String jobId = obj.getJobId();
+		String candidateDetails = obj.getCandidateDetails();
+		String coverLetter = obj.getCoverLetter();
 		String status = obj.getStatus();
-		if (null != companyName)
-			sql.append(" companyName='" + companyName + "',");
-		if (null != descriptions)
-			sql.append(" descriptions='" + descriptions + "',");
-		if (null != location)
-			sql.append(" location='" + location + "',");
-		if (null != positionType)
-			sql.append(" positionType='" + positionType + "',");
-		if (null != salaryRate)
-			sql.append(" salaryRate='" + salaryRate + "',");
+		if (null != jobId)
+			sql.append(" jobId=" + jobId + ",");
+		if (null != candidateDetails)
+			sql.append(" candidateDetails='" + candidateDetails + "',");
+		if (null != coverLetter)
+			sql.append(" coverLetter='" + coverLetter + "',");
 		if (null != status)
 			sql.append(" status=" + status + ",");
 
 		// remove the last comma
 		sql.deleteCharAt(sql.length() - 1);
-		sql.append(" WHERE jobId=" + obj.getJobId() + ";");
+		sql.append(" WHERE appId=" + obj.getAppId() + ";");
 		System.out.println(sql.toString());
 
 		// update
@@ -166,4 +158,24 @@ public class ApplicationDao {
 		return 0;
 	}
 
+	public int countByJobId(String id) {
+		String sql = "SELECT COUNT(*)" //
+				+ " FROM applications" //
+				+ " WHERE jobId = ?;";
+		System.out.println(sql.toString());
+
+		Connection conn = DBUtil.getConnection();
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, id);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next())
+				return rs.getInt(1);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DBUtil.closeConnection(conn);
+		}
+		return -1;
+	}
 }

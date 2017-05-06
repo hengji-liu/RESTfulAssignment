@@ -18,12 +18,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import au.edu.unsw.soacourse.jobs.dao.ApplicationsDao;
 import au.edu.unsw.soacourse.jobs.dao.PostingsDao;
 import au.edu.unsw.soacourse.jobs.model.Posting;
 import au.edu.unsw.soacourse.jobs.model.PostingStatus;
 
 public class PostingServices {
-	private PostingsDao dao = new PostingsDao();
+	private PostingsDao pDao = new PostingsDao();
+	private ApplicationsDao aDao = new ApplicationsDao();
 
 	@GET
 	@Path("/posting/{id}")
@@ -45,7 +47,7 @@ public class PostingServices {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// get item
-		Posting p = dao.findById(id);
+		Posting p = pDao.findById(id);
 		if (null != p) {
 			if (type.equals(MediaType.WILDCARD) || type.equals(MediaType.APPLICATION_JSON)) {
 				return Response.status(Status.OK).entity(p).type(MediaType.APPLICATION_JSON).build();
@@ -87,7 +89,7 @@ public class PostingServices {
 			}
 		}
 		// insert
-		int insertedId = dao.insert(obj);
+		int insertedId = pDao.insert(obj);
 		if (0 != insertedId) {
 			URI uri = null;
 			try {
@@ -112,13 +114,18 @@ public class PostingServices {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// check item exists
-		Posting p = dao.findById(id);
+		Posting p = pDao.findById(id);
 		if (null == p)
 			return Response.status(Status.NOT_FOUND).build();
-		// TODO check no application is associated with this posting, FORBIDDEN
-
+		// check no application is associated with this posting
+		int count = aDao.countByJobId(id);
+		if (count > 0) {
+			return Response.status(Status.FORBIDDEN).build();
+		} else if (count < 0) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
 		// get item
-		int affectedRowCount = dao.delete(id);
+		int affectedRowCount = pDao.delete(id);
 		if (0 == affectedRowCount) { // delete fail
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		} else {
@@ -150,7 +157,7 @@ public class PostingServices {
 		if (!hasUpdate)
 			return Response.status(Status.BAD_REQUEST).build();
 		// check item exists
-		Posting p = dao.findById(id);
+		Posting p = pDao.findById(id);
 		if (null == p)
 			return Response.status(Status.NOT_FOUND).build();
 		// check new status, > current && < max
@@ -158,24 +165,28 @@ public class PostingServices {
 		int oldStatus = Integer.parseInt(p.getStatus());
 		if (newStatus < oldStatus || newStatus > PostingStatus.SENT_INVITATIONS)
 			return Response.status(Status.FORBIDDEN).build();
-		// TODO check no application is associated with this posting, FORBIDDEN
-
+		// check no application is associated with this posting
+		int count = aDao.countByJobId(id);
+		if (count > 0) {
+			return Response.status(Status.FORBIDDEN).build();
+		} else if (count < 0) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
 		// update
 		obj.setJobId(id);
-		int affectedRowCount = dao.update(obj);
+		int affectedRowCount = pDao.update(obj);
 		if (0 == affectedRowCount) { // update fail
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		} else {
-			obj = dao.findById(id);
 			return Response.status(Status.NO_CONTENT).build();
 		}
 	}
 
 	@GET
-	@Path("/postings") // postings?keyword=yo&skills=a,b,c&status=0
+	@Path("/postings") // postings?keyword=yo&status=0
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response search(@HeaderParam("accept") String type, @QueryParam("skills") String skills,
-			@QueryParam("keyword") String keyword, @QueryParam("status") String status) {
+	public Response search(@HeaderParam("accept") String type, @QueryParam("keyword") String keyword,
+			@QueryParam("status") String status) {
 		// validation media type
 		if (type.equals(MediaType.WILDCARD) //
 				|| type.equals(MediaType.APPLICATION_JSON)) {
@@ -186,7 +197,7 @@ public class PostingServices {
 
 		// if no query param
 		if ((null == keyword || "".equals(keyword)) && (null == status || "".equals(status))) {
-			List<Posting> list = dao.findAll();
+			List<Posting> list = pDao.findAll();
 			if (null != list) {
 				return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
 			} else {
@@ -204,10 +215,8 @@ public class PostingServices {
 			}
 		}
 
-		// TODO skills??
-
 		// search on at least one param
-		List<Posting> list = dao.search(keyword, status);
+		List<Posting> list = pDao.search(keyword, status);
 		if (null != list) {
 			return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
 		} else {

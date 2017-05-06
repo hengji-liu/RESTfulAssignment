@@ -17,12 +17,16 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import au.edu.unsw.soacourse.jobs.dao.ApplicationDao;
+import au.edu.unsw.soacourse.jobs.dao.ApplicationsDao;
+import au.edu.unsw.soacourse.jobs.dao.PostingsDao;
 import au.edu.unsw.soacourse.jobs.model.Application;
 import au.edu.unsw.soacourse.jobs.model.ApplicationStatus;
+import au.edu.unsw.soacourse.jobs.model.Posting;
+import au.edu.unsw.soacourse.jobs.model.PostingStatus;
 
 public class ApplicationServices {
-	private ApplicationDao dao = new ApplicationDao();
+	private ApplicationsDao aDao = new ApplicationsDao();
+	private PostingsDao pDao = new PostingsDao();
 
 	@GET
 	@Path("/application/{appId}")
@@ -44,7 +48,7 @@ public class ApplicationServices {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// get item
-		Application p = dao.findById(appId);
+		Application p = aDao.findById(appId);
 		if (null != p) {
 			if (type.equals(MediaType.WILDCARD) || type.equals(MediaType.APPLICATION_JSON)) {
 				return Response.status(Status.OK).entity(p).type(MediaType.APPLICATION_JSON).build();
@@ -69,7 +73,7 @@ public class ApplicationServices {
 		}
 		// if no query param, do find all
 		if (null == jobId || "".equals(jobId)) {
-			List<Application> list = dao.findAll();
+			List<Application> list = aDao.findAll();
 			if (null != list) {
 				return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
 			} else {
@@ -85,7 +89,7 @@ public class ApplicationServices {
 			}
 		}
 		// search on at least one param
-		List<Application> list = dao.findByJobId(jobId);
+		List<Application> list = aDao.findByJobId(jobId);
 		if (null != list) {
 			return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
 		} else {
@@ -117,9 +121,13 @@ public class ApplicationServices {
 		) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
+		// check, posting status is open
+		Posting p = pDao.findById(obj.getJobId());
+		if (PostingStatus.OPEN != Integer.parseInt(p.getStatus()))
+			return Response.status(Status.FORBIDDEN).build();
 		// insert
 		obj.setStatus(String.valueOf(ApplicationStatus.RECEIVED));
-		int insertedId = dao.insert(obj);
+		int insertedId = aDao.insert(obj);
 		if (0 != insertedId) {
 			URI uri = null;
 			try {
@@ -133,49 +141,40 @@ public class ApplicationServices {
 		return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 	}
 
-	// TODO
-	// @PUT
-	// @Path("/application/{appId}")
-	// @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-	// public Response put(@PathParam("id") String id, Application obj) {
-	// // validation, id should be an int
-	// try {
-	// Integer.parseInt(id);
-	// } catch (NumberFormatException e) {
-	// return Response.status(Status.BAD_REQUEST).build();
-	// }
-	// // validation, jobId must be null or empty
-	// if (!(null == obj.getJobId() || "".equals(obj.getJobId())))
-	// return Response.status(Status.BAD_REQUEST).build();
-	// // validation, has something to update
-	// boolean hasUpdate = false;
-	// hasUpdate |= (null != obj.getCompanyName());
-	// hasUpdate |= (null != obj.getDescriptions());
-	// hasUpdate |= (null != obj.getLocation());
-	// hasUpdate |= (null != obj.getPositionType());
-	// hasUpdate |= (null != obj.getSalaryRate());
-	// hasUpdate |= (null != obj.getStatus());
-	// if (!hasUpdate)
-	// return Response.status(Status.BAD_REQUEST).build();
-	// // check item exists
-	// Application p = dao.findById(id);
-	// if (null == p)
-	// return Response.status(Status.NOT_FOUND).build();
-	// // check new status, > current && < max
-	// int newStatus = Integer.parseInt(obj.getStatus());
-	// int oldStatus = Integer.parseInt(p.getStatus());
-	// if (newStatus < oldStatus || newStatus > PostingStatus.SENT_INVITATIONS)
-	// return Response.status(Status.FORBIDDEN).build();
-	// // TODO check no application is associated with this posting, FORBIDDEN
-	//
-	// // update
-	// obj.setJobId(id);
-	// int affectedRowCount = dao.update(obj);
-	// if (0 == affectedRowCount) { // update fail
-	// return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-	// } else {
-	// obj = dao.findById(id);
-	// return Response.status(Status.NO_CONTENT).build();
-	// }
-	// }
+	@PUT
+	@Path("/application/{appId}")
+	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	public Response put(@PathParam("appId") String appId, Application obj) {
+		// validation, appId should be an int
+		try {
+			Integer.parseInt(appId);
+		} catch (NumberFormatException e) {
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+		// validation, appId in payload must be null or empty
+		if (!(null == obj.getAppId() || "".equals(obj.getAppId())))
+			return Response.status(Status.BAD_REQUEST).build();
+		// validation, has something to update
+		boolean hasUpdate = false;
+		hasUpdate |= (null != obj.getJobId());
+		hasUpdate |= (null != obj.getCandidateDetails());
+		hasUpdate |= (null != obj.getCoverLetter());
+		hasUpdate |= (null != obj.getStatus());
+		if (!hasUpdate)
+			return Response.status(Status.BAD_REQUEST).build();
+		// check item exists
+		Application p = aDao.findById(appId);
+		if (null == p)
+			return Response.status(Status.NOT_FOUND).build();
+		// TODO check status, description very vague. FORBIDDEN
+
+		// update
+		obj.setAppId(appId);
+		int affectedRowCount = aDao.update(obj);
+		if (0 == affectedRowCount) { // update fail
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		} else {
+			return Response.status(Status.NO_CONTENT).build();
+		}
+	}
 }
