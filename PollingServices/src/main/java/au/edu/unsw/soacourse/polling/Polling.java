@@ -21,6 +21,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import com.j256.ormlite.dao.Dao;
@@ -103,11 +104,15 @@ public class Polling {
     
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Path("/addNewVote")
+    @Path("/vote")
     public Response addNewVote(
     		@FormParam("participantName") String participantName, 
     		@FormParam("chosenOption") String chosenOption,
     		@FormParam("pollId") String pollId) {
+		if (participantName.isEmpty() || chosenOption.isEmpty() || pollId.isEmpty()) {
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+		
     	String voteId = UUID.randomUUID().toString();
     	try {
         	Poll poll = getPollDao().queryForId(pollId);
@@ -170,14 +175,18 @@ public class Polling {
     }
     
     @PUT
-    @Path("/vote/edit/{id}")
+    @Path("/vote/{id}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response updateVote(    		
     		@PathParam("id") String voteId,
     		@FormParam("participantName") String participantName, 
     		@FormParam("chosenOption") String chosenOption,
     		@FormParam("pollId") String pollId) {
-        try {
+		if (participantName.isEmpty() || chosenOption.isEmpty() || pollId.isEmpty() || voteId.isEmpty()) {
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+		
+        try {	
         	Vote updatedVote = getVoteDao().queryForId(voteId);
         	
         	if (updatedVote == null) {
@@ -189,7 +198,7 @@ public class Polling {
         	
         	if (poll.getFinalChoice() != null && poll.getFinalChoice() != "") {
         		connectionSource.close();
-        		return Response.status(412).build();
+        		return Response.status(Status.PRECONDITION_FAILED).build();
         	}
         	
         	updatedVote.setChosenOption(chosenOption);
@@ -222,13 +231,17 @@ public class Polling {
     
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Path("/addNewPoll")
+    @Path("/poll")
     public Response addNewPoll(
     		@FormParam("title") String title, 
     		@FormParam("description") String description,
     		@FormParam("optionsType") String optionsType,
     		@FormParam("comments") String comments,
     		@FormParam("options") String options) {
+		if (title.isEmpty() || description.isEmpty() || optionsType.isEmpty() || options.isEmpty()) {
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+		
     	String pollId = UUID.randomUUID().toString();
     	try {
         	Poll outputPoll = new Poll(pollId, title, description, optionsType, options, comments);
@@ -293,7 +306,7 @@ public class Polling {
     }
     
     @GET
-    @Path("/polls/")
+    @Path("/polls")
     @Produces("application/json")
     public Response getPolls() {
         try {
@@ -331,7 +344,7 @@ public class Polling {
     }
     
     @PUT
-    @Path("/poll/edit/{id}")
+    @Path("/poll/{id}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response updatePoll(
     		@PathParam("id") String pollId,
@@ -341,6 +354,10 @@ public class Polling {
     		@FormParam("comments") String comments,
     		@FormParam("options") String options,
     		@FormParam("finalChoice") String finalChoice) {
+		if (title.isEmpty() || description.isEmpty() || optionsType.isEmpty() || options.isEmpty()) {
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+		
         try {
         	Poll updatedPoll = getPollDao().queryForId(pollId);
         	
@@ -365,7 +382,59 @@ public class Polling {
 	        	}
         	} else {
         		connectionSource.close();
-        		return Response.status(412).build();
+        		return Response.status(Status.PRECONDITION_FAILED).build();
+        	}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+        try {
+			connectionSource.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+        return Response.serverError().build();
+    }
+    
+    @PUT
+    @Path("/poll/finalise/{id}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response finalisePoll(
+    		@PathParam("id") String pollId,
+    		@FormParam("title") String title, 
+    		@FormParam("description") String description,
+    		@FormParam("optionsType") String optionsType,
+    		@FormParam("comments") String comments,
+    		@FormParam("options") String options,
+    		@FormParam("finalChoice") String finalChoice) {
+		if (title.isEmpty() || description.isEmpty() || optionsType.isEmpty() || options.isEmpty()) {
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+		
+        try {
+        	Poll updatedPoll = getPollDao().queryForId(pollId);
+        	
+        	if (updatedPoll == null) {
+        		connectionSource.close();
+        		return Response.noContent().build();
+        	}
+        	
+        	updatedPoll.setComments(comments);
+        	updatedPoll.setDescription(description);
+        	updatedPoll.setOptions(options);
+        	updatedPoll.setOptionType(optionsType);
+        	updatedPoll.setTitle(title);
+        	updatedPoll.setFinalChoice(finalChoice);
+        	
+        	if (getPollDao().update(updatedPoll) > 0) {
+            	connectionSource.close();
+        		return Response.ok().build();
         	}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -386,7 +455,7 @@ public class Polling {
     }
     
     @DELETE
-    @Path("/poll/delete/{id}")
+    @Path("/poll/{id}")
     public Response deletePoll(@PathParam("id") String pollId) {
         try {
         	Poll deletePoll = getPollDao().queryForId(pollId);
@@ -427,7 +496,8 @@ public class Polling {
     }
     
     @GET
-    @Path("/polls/search/")
+    @Path("/polls")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces("application/json")
     public Response searchPolls(
     		@QueryParam("title") String title,
@@ -435,29 +505,47 @@ public class Polling {
     		@QueryParam("optionType") String optionType,
     		@QueryParam("comments") String comments) {
         try {
-        	Poll queryPoll = new Poll();
-        	queryPoll.setTitle(title);
-        	queryPoll.setComments(comments);
-        	queryPoll.setDescription(description);
-        	queryPoll.setOptionType(optionType);
-        	
-        	List<Poll> outPolls = getPollDao().queryForMatching(queryPoll);
-        	
-        	if (!outPolls.isEmpty()) {
-        		List<Poll> retPolls = new ArrayList<Poll>();
-            	for (Poll poll : outPolls) {
-            		List<Vote> votes = getVoteDao().queryBuilder().where().eq("poll_id", poll.getPollId()).query();
-                	poll.setVotes(votes);
-                	retPolls.add(poll);
-    			}
+        	if (title.isEmpty() || description.isEmpty() || optionType.isEmpty() || comments.isEmpty()) {
+            	List<Poll> outPolls = getPollDao().queryForAll();
+            	if (outPolls != null) {
+            		List<Poll> retPolls = new ArrayList<Poll>();
+                	for (Poll poll : outPolls) {
+                		List<Vote> votes = getVoteDao().queryBuilder().where().eq("poll_id", poll.getPollId()).query();
+                    	poll.setVotes(votes);
+                    	retPolls.add(poll);
+        			}
+                	
+                	connectionSource.close();
+            		return Response.ok().entity(retPolls).build();
+            	}
             	
             	connectionSource.close();
-        		return Response.ok().entity(retPolls).build();
+            	return Response.noContent().build();  
+        	} else {
+	        	Poll queryPoll = new Poll();
+	        	queryPoll.setTitle(title);
+	        	queryPoll.setComments(comments);
+	        	queryPoll.setDescription(description);
+	        	queryPoll.setOptionType(optionType);
+	        	
+	        	
+	        	List<Poll> outPolls = getPollDao().queryForMatching(queryPoll);
+	        	
+	        	if (!outPolls.isEmpty()) {
+	        		List<Poll> retPolls = new ArrayList<Poll>();
+	            	for (Poll poll : outPolls) {
+	            		List<Vote> votes = getVoteDao().queryBuilder().where().eq("poll_id", poll.getPollId()).query();
+	                	poll.setVotes(votes);
+	                	retPolls.add(poll);
+	    			}
+	            	
+	            	connectionSource.close();
+	        		return Response.ok().entity(retPolls).build();
+	        	}
+	        	
+	        	connectionSource.close();
+	        	return Response.noContent().build();  
         	}
-        	
-        	connectionSource.close();
-        	return Response.noContent().build();  
-        	
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
