@@ -1,4 +1,3 @@
-
 # RESTfulAssignment
 
 SOA Course Assignment, RESTful API
@@ -12,6 +11,24 @@ Team Anonymous:
 ## Job Services
 
 ### posting
+``` json
+{
+  "jobId": "3",
+  "companyName": "Amazing Co.",
+  "descriptions": "yo",
+  "positionType": "full time",
+  "salaryRate": "600000",
+  "location": "sydney cbd",
+  "status": "1"
+}
+```
+status:<br>
+created = 0<br>
+open = 1<br>
+in review = 2<br>
+processed = 3<br>
+sent invitation = 4<br>
+
 |Method|URL|Comment|
 |------|---|-------|
 |GET|/posting/{id}|gives back *xml/json* <br> **BAD REQUEST** if wrong syntax or type <br> **OK** with *xml/json* if successful <br> **NOT FOUND** if item doesn't exist|
@@ -25,6 +42,22 @@ Team Anonymous:
 |DELETE|/posting/{id}|**BAD REQUEST** if wrong syntax <br> **NOT FOUND** if item doesn't exist <br> **FORBIDDEN** if item already has application <br> **INTERNAL SERVER ERROR** if insert fail <br> **NO CONTENT** if successful|
 
 ### appliaction
+
+```json
+{
+  "status": "3",
+  "appId": "1",
+  "jobId": "3",
+  "candidateDetails": "details here",
+  "coverLetter": "this is a cover letter"
+}
+```
+status:
+received = 0<br>
+in review = 1<br>
+accepted = 2<br>
+rejected = 3<br>
+
 |Method|URL|Comment|
 |------|---|-------|
 |GET|/application/{appId}| gives back *xml/json* <br> **BAD REQUEST** if wrong syntax or type <br> **OK** with *xml/json* if successful <br> **NOT FOUND** if item doesn't exist|
@@ -36,6 +69,20 @@ Team Anonymous:
 |PUT|/applications/accpeted/{id}| <br>**BAD REQUEST** if wrong syntax<br> **NOT FOUND** if item doesn't exist <br> **FORBIDDEN** if application is not at or beyond in-review <br>  **INTERNAL SERVER ERROR** if update fail <br> **NO CONTENT** if successful|
 
 ### review
+
+```json
+{
+  "appId": "1",
+  "decision": "1",
+  "reviewId": "1",
+  "comments": "komenz",
+  "reviewerDetails": "review dtails"
+}
+```
+decision: <br>
+not recommend = 0 <br>
+recommend = 1 <br>
+
 |Method|URL|Comment|
 |------|---|-------|
 |POST|/review|accepts *xml/json* <br> *reviewId* must be null or empty <br> *appId* must be an int <br> *decision* must be 0 or 1 <br> *other fields* must NOT be null <br> associated posting must be status in_review<br> **BAD REQUEST** if wrong yntax <br> **INTERNAL SERVER ERROR** if insert fail <br> **CREATED** with URI in the header if successful|
@@ -45,7 +92,7 @@ Team Anonymous:
 
 ---
 
-Polling Services:
+## Polling Services
 
 |Method|URL|HTTP_RESPONSE|CONSUME|
 |------|---|-------------|-------|
