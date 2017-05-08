@@ -5,10 +5,13 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBUtil {
+	
 	static Connection getConnection(){
 	    try {
-			Class.forName("org.sqlite.JDBC");
-			String url = "jdbc:sqlite:db.sqlite";
+	    	
+	    	String dbpath = DBUtil.class.getClassLoader().getResource("db.sqlite").getPath();
+	    	Class.forName("org.sqlite.JDBC");
+			String url = "jdbc:sqlite:"+dbpath;
 			return DriverManager.getConnection(url);
 		} catch (ClassNotFoundException|SQLException e) {
 			e.printStackTrace();
