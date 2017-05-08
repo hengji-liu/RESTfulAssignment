@@ -1,3 +1,4 @@
+
 # RESTfulAssignment
 
 SOA Course Assignment, RESTful API
@@ -8,9 +9,9 @@ Team Anonymous:
 
 ---
 
-##Job Services
+## Job Services
 
-###posting
+### posting
 |Method|URL|Comment|
 |------|---|-------|
 |GET|/posting/{id}|gives back *xml/json* <br> **BAD REQUEST** if wrong syntax or type <br> **OK** with *xml/json* if successful <br> **NOT FOUND** if item doesn't exist|
@@ -19,7 +20,7 @@ Team Anonymous:
 |PUT|/posting/{id}|accepts *xml/json* <br> *jobId* must be null or empty <br> *status* must be valid <br> at least one of the *other fields* is NOT null <br>**BAD REQUEST** if wrong syntax or nothing to update<br> **NOT FOUND** if item doesn't exist <br> **FORBIDDEN** if *status* is not valid or item already has application <br> **INTERNAL SERVER ERROR** if update fail <br> **NO CONTENT** if successful|
 |DELETE|/posting/{id}|**BAD REQUEST** if wrong syntax <br> **NOT FOUND** if item doesn't exist <br> **FORBIDDEN** if item already has application <br> **INTERNAL SERVER ERROR** if insert fail <br> **NO CONTENT** if successful|
 
-###appliaction
+### appliaction
 |Method|URL|Comment|
 |------|---|-------|
 |GET|/application/{appId}| gives back *xml/json* <br> **BAD REQUEST** if wrong syntax or type <br> **OK** with *xml/json* if successful <br> **NOT FOUND** if item doesn't exist|
@@ -29,7 +30,7 @@ Team Anonymous:
 |PUT|/applications/rejected/{id}| <br>**BAD REQUEST** if wrong syntax<br> **NOT FOUND** if item doesn't exist <br> **FORBIDDEN** if application is not at or beyond in-review <br>  **INTERNAL SERVER ERROR** if update fail <br> **NO CONTENT** if successful|
 |PUT|/applications/accpeted/{id}| <br>**BAD REQUEST** if wrong syntax<br> **NOT FOUND** if item doesn't exist <br> **FORBIDDEN** if application is not at or beyond in-review <br>  **INTERNAL SERVER ERROR** if update fail <br> **NO CONTENT** if successful|
 
-###review
+### review
 |Method|URL|Comment|
 |------|---|-------|
 |POST|/review|accepts *xml/json* <br> *reviewId* must be null or empty <br> *appId* must be an int <br> *decision* must be 0 or 1 <br> *other fields* must NOT be null <br> associated posting must be status in_review<br> **BAD REQUEST** if wrong yntax <br> **INTERNAL SERVER ERROR** if insert fail <br> **CREATED** with URI in the header if successful|
