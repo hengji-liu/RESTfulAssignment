@@ -29,7 +29,6 @@ public class PostingServices {
 
 	@GET
 	@Path("/posting/{id}")
-	@Consumes(MediaType.TEXT_PLAIN)
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response get(@HeaderParam("accept") String type, @PathParam("id") String id) {
 		// validation, id should be an int
@@ -39,21 +38,17 @@ public class PostingServices {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// validation media type
-		if (type.equals(MediaType.WILDCARD) //
-				|| type.equals(MediaType.APPLICATION_JSON) //
-				|| type.equals(MediaType.APPLICATION_XML)) {
-			// do nothing
-		} else {// other type not supported
+		if (!type.equals(MediaType.WILDCARD) //
+				&& !type.equals(MediaType.APPLICATION_JSON) //
+				&& !type.equals(MediaType.APPLICATION_XML)) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// get item
 		Posting p = pDao.findById(id);
 		if (null != p) {
-			if (type.equals(MediaType.WILDCARD) || type.equals(MediaType.APPLICATION_JSON)) {
-				return Response.status(Status.OK).entity(p).type(MediaType.APPLICATION_JSON).build();
-			} else {
-				return Response.status(Status.OK).entity(p).type(MediaType.APPLICATION_XML).build();
-			}
+			if (type.equals(MediaType.WILDCARD))
+				type = MediaType.APPLICATION_JSON; // default json
+			return Response.status(Status.OK).entity(p).type(type).build();
 		} else {// item not found
 			return Response.status(Status.NOT_FOUND).build();
 		}
@@ -64,7 +59,8 @@ public class PostingServices {
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response post(Posting obj) {
 		// validation, jobId must be null or empty
-		if (!(null == obj.getJobId() || "".equals(obj.getJobId())))
+		String jobId = obj.getJobId();
+		if (null != jobId && !"".equals(jobId))
 			return Response.status(Status.BAD_REQUEST).build();
 		// validation, other fields must not be null
 		if (null == obj.getCompanyName()//
@@ -76,13 +72,13 @@ public class PostingServices {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// validation, status can only be empty or number 0(created)/1(open)
-		if (null == obj.getStatus() || "".equals(obj.getStatus())) {
-			// default status is created
+		String status = obj.getStatus();
+		if (null == status || "".equals(status)) { // default status is created
 			obj.setStatus(String.valueOf(PostingStatus.CREATED));
 		} else {
 			try {
-				int status = Integer.parseInt(obj.getStatus());
-				if (PostingStatus.OPEN < status)
+				int statusInt = Integer.parseInt(status);
+				if (statusInt >= PostingStatus.IN_REVIEW)
 					return Response.status(Status.BAD_REQUEST).build();
 			} catch (NumberFormatException e) {
 				return Response.status(Status.BAD_REQUEST).build();
@@ -105,7 +101,6 @@ public class PostingServices {
 
 	@DELETE
 	@Path("/posting/{id}")
-	@Consumes(MediaType.TEXT_PLAIN)
 	public Response del(@PathParam("id") String id) {
 		// validation, id should be an int
 		try {
@@ -124,7 +119,7 @@ public class PostingServices {
 		} else if (count < 0) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
-		// get item
+		// delete item
 		int affectedRowCount = pDao.delete(id);
 		if (0 == affectedRowCount) { // delete fail
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -137,14 +132,15 @@ public class PostingServices {
 	@Path("/posting/{id}")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response put(@PathParam("id") String id, Posting obj) {
-		// validation, id should be an int
+		// validation, id param should be an int
 		try {
 			Integer.parseInt(id);
 		} catch (NumberFormatException e) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
-		// validation, jobId must be null or empty
-		if (!(null == obj.getJobId() || "".equals(obj.getJobId())))
+		// validation, jobId in payload must be null or empty
+		String jobId = obj.getJobId();
+		if (null != jobId && !"".equals(jobId))
 			return Response.status(Status.BAD_REQUEST).build();
 		// validation, has something to update
 		boolean hasUpdate = false;
@@ -160,11 +156,6 @@ public class PostingServices {
 		Posting p = pDao.findById(id);
 		if (null == p)
 			return Response.status(Status.NOT_FOUND).build();
-		// check new status, > current && < max
-		int newStatus = Integer.parseInt(obj.getStatus());
-		int oldStatus = Integer.parseInt(p.getStatus());
-		if (newStatus < oldStatus || newStatus > PostingStatus.SENT_INVITATIONS)
-			return Response.status(Status.FORBIDDEN).build();
 		// check no application is associated with this posting
 		int count = aDao.countByJobId(id);
 		if (count > 0) {
@@ -188,12 +179,8 @@ public class PostingServices {
 	public Response search(@HeaderParam("accept") String type, @QueryParam("keyword") String keyword,
 			@QueryParam("status") String status) {
 		// validation media type
-		if (type.equals(MediaType.WILDCARD) //
-				|| type.equals(MediaType.APPLICATION_JSON)) {
-			// do nothing
-		} else {// other type not supported
+		if (!type.equals(MediaType.WILDCARD) && !type.equals(MediaType.APPLICATION_JSON))
 			return Response.status(Status.BAD_REQUEST).build();
-		}
 
 		// if no query param
 		if ((null == keyword || "".equals(keyword)) && (null == status || "".equals(status))) {
@@ -221,6 +208,56 @@ public class PostingServices {
 			return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
 		} else {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
+	@PUT
+	@Path("/postings/{status}/{id}") // status is rejected or accept
+	public Response updateStatus(@PathParam("status") String status, @PathParam("id") String id) {
+		// validation, id should be an int
+		try {
+			Integer.parseInt(id);
+		} catch (NumberFormatException e) {
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+		// rejected or accepted
+		if ("open".equals(status) //
+				|| "in_review".equals(status) //
+				|| "processed".equals(status) //
+				|| "sent_invitations".equals(status) //
+		) {
+			Posting p = pDao.findById(id);
+			// check item exist
+			if (null == p)
+				return Response.status(Status.NOT_FOUND).build();
+			// check status and update
+			int oldStatus = Integer.parseInt(p.getStatus());
+			int newStatus;
+			switch (status) {
+			case "open":
+				newStatus = PostingStatus.OPEN;
+				break;
+			case "in_review":
+				newStatus = PostingStatus.IN_REVIEW;
+				break;
+			case "processed":
+				newStatus = PostingStatus.PROCESSED;
+				break;
+			default: // sent_invitations
+				newStatus = PostingStatus.SENT_INVITATIONS;
+			}
+			// status have a total order, can only move forward
+			if (newStatus < oldStatus)
+				return Response.status(Status.FORBIDDEN).build();
+			// update status
+			int affectedRowCount = pDao.update(p);
+			if (0 == affectedRowCount) { // update fail
+				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+			} else {
+				return Response.status(Status.NO_CONTENT).build();
+			}
+		} else {
+			return Response.status(Status.METHOD_NOT_ALLOWED).build();
 		}
 	}
 }

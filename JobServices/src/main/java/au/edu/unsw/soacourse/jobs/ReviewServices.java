@@ -33,7 +33,6 @@ public class ReviewServices {
 
 	@GET
 	@Path("/review/{rId}")
-	@Consumes(MediaType.TEXT_PLAIN)
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response get(@HeaderParam("accept") String type, @PathParam("rId") String rId) {
 		// validation, rId should be an int
@@ -43,37 +42,29 @@ public class ReviewServices {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// validation media type
-		if (type.equals(MediaType.WILDCARD) //
-				|| type.equals(MediaType.APPLICATION_JSON) //
-				|| type.equals(MediaType.APPLICATION_XML)) {
-			// do nothing
-		} else {// other type not supported
+		if (!type.equals(MediaType.WILDCARD) //
+				&& !type.equals(MediaType.APPLICATION_JSON) //
+				&& !type.equals(MediaType.APPLICATION_XML)) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// get item
 		Review r = rDao.findById(rId);
 		if (null != r) {
-			if (type.equals(MediaType.WILDCARD) || type.equals(MediaType.APPLICATION_JSON)) {
-				return Response.status(Status.OK).entity(r).type(MediaType.APPLICATION_JSON).build();
-			} else {
-				return Response.status(Status.OK).entity(r).type(MediaType.APPLICATION_XML).build();
-			}
+			if (type.equals(MediaType.WILDCARD))
+				type = MediaType.APPLICATION_JSON; // default json
+			return Response.status(Status.OK).entity(r).type(type).build();
 		} else {// item not found
 			return Response.status(Status.NOT_FOUND).build();
 		}
 	}
 
 	@GET
-	@Path("/reviews") // applications?appId=x
+	@Path("/reviews") // reviews?appId=x
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getReviewByApp(@HeaderParam("accept") String type, @QueryParam("appId") String appId) {
 		// validation media type
-		if (type.equals(MediaType.WILDCARD) //
-				|| type.equals(MediaType.APPLICATION_JSON)) {
-			// do nothing
-		} else {// other type not supported
+		if (!type.equals(MediaType.WILDCARD) && !type.equals(MediaType.APPLICATION_JSON))
 			return Response.status(Status.BAD_REQUEST).build();
-		}
 		// if no query param, do find all
 		if (null == appId || "".equals(appId)) {
 			List<Review> list = rDao.findAll();
@@ -105,13 +96,15 @@ public class ReviewServices {
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response post(Review obj) {
 		// validation, reviewId must be null or empty
-		if (!(null == obj.getReviewId() || "".equals(obj.getReviewId())))
+		String reviewId = obj.getReviewId();
+		if (null != reviewId && !"".equals(reviewId))
 			return Response.status(Status.BAD_REQUEST).build();
 		// validation, appId must not be null and be an int
-		if (null == obj.getAppId())
+		String appId = obj.getAppId();
+		if (null == appId)
 			return Response.status(Status.BAD_REQUEST).build();
 		try {
-			Integer.parseInt(obj.getAppId());
+			Integer.parseInt(appId);
 		} catch (NumberFormatException e) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
@@ -122,13 +115,14 @@ public class ReviewServices {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// validation decision must be 0/1
+		String decision = obj.getDecision();
 		try {
-			Integer.parseInt(obj.getDecision());
+			Integer.parseInt(decision);
 		} catch (NumberFormatException e) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
-		if (ReviewDecisoin.NOT_RECOMMEND != Integer.parseInt(obj.getDecision())
-				&& ReviewDecisoin.RECOMMEND != Integer.parseInt(obj.getDecision())) {
+		if (ReviewDecisoin.NOT_RECOMMEND != Integer.parseInt(decision)
+				&& ReviewDecisoin.RECOMMEND != Integer.parseInt(decision)) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// check, posting status is in review
@@ -162,7 +156,8 @@ public class ReviewServices {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// validation, rId in payload must be null or empty
-		if (!(null == obj.getReviewId() || "".equals(obj.getReviewId())))
+		String rIdPayload = obj.getReviewId();
+		if (null != rIdPayload || !"".equals(rIdPayload))
 			return Response.status(Status.BAD_REQUEST).build();
 		// validation, has something to update
 		boolean hasUpdate = false;

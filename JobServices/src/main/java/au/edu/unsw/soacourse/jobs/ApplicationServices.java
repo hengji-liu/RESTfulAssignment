@@ -47,11 +47,9 @@ public class ApplicationServices {
 		// get item
 		Application p = aDao.findById(appId);
 		if (null != p) {
-			if (type.equals(MediaType.WILDCARD) || type.equals(MediaType.APPLICATION_JSON)) {
-				return Response.status(Status.OK).entity(p).type(MediaType.APPLICATION_JSON).build();
-			} else {
-				return Response.status(Status.OK).entity(p).type(MediaType.APPLICATION_XML).build();
-			}
+			if (type.equals(MediaType.WILDCARD))
+				type = MediaType.APPLICATION_JSON; // default json
+			return Response.status(Status.OK).entity(p).type(type).build();
 		} else {// item not found
 			return Response.status(Status.NOT_FOUND).build();
 		}
@@ -148,7 +146,7 @@ public class ApplicationServices {
 		} catch (NumberFormatException e) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
-		// validation, jobId should be an int
+		// validation, jobId in payload should be an int
 		if (null != obj.getJobId()) {
 			try {
 				Integer.parseInt(obj.getJobId());
@@ -156,14 +154,10 @@ public class ApplicationServices {
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 		}
-		// validation, status should be an int
-		if (null != obj.getStatus()) {
-			try {
-				Integer.parseInt(obj.getStatus());
-			} catch (NumberFormatException e) {
-				return Response.status(Status.BAD_REQUEST).build();
-			}
-		}
+		// validation, status in payload must be null or empty
+		String statusPayload = obj.getStatus();
+		if (null != statusPayload && !"".equals(statusPayload))
+			return Response.status(Status.BAD_REQUEST).build();
 		// validation, appId in payload must be null or empty
 		String appIdPayload = obj.getAppId();
 		if (null != appIdPayload && !"".equals(appIdPayload))
@@ -195,7 +189,8 @@ public class ApplicationServices {
 	}
 
 	@PUT
-	@Path("/applications/{status}/{id}") // status is rejected or accept
+	@Path("/applications/{status}/{id}") // status is rejected or accept or
+											// in_review
 	public Response updateStatus(@PathParam("status") String status, @PathParam("id") String id) {
 		// validation, id should be an int
 		try {
@@ -204,15 +199,23 @@ public class ApplicationServices {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// rejected or accepted
-		if ("rejected".equals(status) || "accepted".equals(status)) {
+		if ("in_review".equals(status) || "rejected".equals(status) || "accepted".equals(status)) {
 			Application a = aDao.findById(id);
 			// check item exist
 			if (null == a)
 				return Response.status(Status.NOT_FOUND).build();
 			// check old status
-			if (Integer.parseInt(a.getStatus()) < ApplicationStatus.IN_REVIEW)
+			// can set to in_review at any time
+			// but set to r/a only after in_review
+			if (!status.equals("in_review")// rejected or accepted
+					&& Integer.parseInt(a.getStatus()) < ApplicationStatus.IN_REVIEW) {
 				return Response.status(Status.FORBIDDEN).build();
+			}
+			// update
 			switch (status) {
+			case "in_review":
+				a.setStatus(String.valueOf(ApplicationStatus.IN_REVIEW));
+				break;
 			case "rejected":
 				a.setStatus(String.valueOf(ApplicationStatus.REJECTED));
 				break;
