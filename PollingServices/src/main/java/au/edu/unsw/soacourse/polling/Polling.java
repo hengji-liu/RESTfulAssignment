@@ -19,6 +19,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Link;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -240,6 +241,8 @@ public class Polling {
     		@FormParam("options") String options) {
 		if (title.isEmpty() || description.isEmpty() || optionsType.isEmpty() || options.isEmpty()) {
 			return Response.status(Status.BAD_REQUEST).build();
+		} else if (optionsType.toUpperCase() != "GENERIC" || optionsType.toUpperCase() != "DATE") {
+			return Response.status(Status.BAD_REQUEST).build();
 		}
 		
     	String pollId = UUID.randomUUID().toString();
@@ -282,7 +285,8 @@ public class Polling {
             	outPoll.setVotes(votes);
 
             	connectionSource.close();
-        		return Response.ok(outPoll).build();
+            	Link finaliseLink = Link.fromUri(uri.getBaseUri() + "polling/poll/finalise/" + pollId).build();
+        		return Response.ok(outPoll).links(finaliseLink).build();
         	}
         	
     		connectionSource.close();
@@ -413,7 +417,7 @@ public class Polling {
     		@FormParam("comments") String comments,
     		@FormParam("options") String options,
     		@FormParam("finalChoice") String finalChoice) {
-		if (title.isEmpty() || description.isEmpty() || optionsType.isEmpty() || options.isEmpty()) {
+		if (title.isEmpty() || description.isEmpty() || optionsType.isEmpty() || options.isEmpty() || finalChoice.isEmpty()) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		
@@ -470,7 +474,8 @@ public class Polling {
         	if (votes.isEmpty()) {    	
         		if (getPollDao().delete(deletePoll) > 0) {
         			connectionSource.close();
-            		return Response.ok().build();
+        			Link showAllPolls = Link.fromUri(uri.getBaseUri() + "polling/polls").build();
+            		return Response.ok().links(showAllPolls).build();
             	}
         	} else {
         		connectionSource.close();

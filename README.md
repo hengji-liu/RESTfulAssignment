@@ -25,3 +25,16 @@ Job Services:
 |GET|/review/{rId}| gives back *xml/json* <br> **BAD REQUEST** if wrong syntax or type <br> **OK** with *xml/json* if successful <br> **NOT FOUND** if item doesn't exist|
 |GET|/reviews?appId=x| gives back *json* <br> param optional, no or empty param means search for all <br> **BAD REQUEST** if wrong syntax or accept type <br> **INTERNAL SERVER ERROR** if search fail <br> **OK** with *json* if successful|
 |PUT|/review/{id}|accepts *xml/json* <br> *reviewId* in the payload must be null or empty <br> at least one of the *other fields* is NOT null <br>**BAD REQUEST** if wrong syntax or nothing to update<br> **NOT FOUND** if item doesn't exist <br> **INTERNAL SERVER ERROR** if update fail <br> **NO CONTENT** if successful|
+
+---
+
+Polling Services:
+
+|Method|URL|HTTP_RESPONSE|CONSUME|
+|------|---|-------------|-------|
+|POST|/poll|**INTERNAL SERVER ERROR** if insert fail <br> **BAD REQUEST** if any of form parameters, except for comments and finalChoice is empty <br> **CREATED** with URI in the header (location) if successful|**APPLICATION_FORM_URLENCODED** <br> *title* <br> *description* <br> *optionsType* either "GENERIC" or "DATE" <br> *options* date/string separated by semicolon(;) <br> *comments* can be left empty <br> *finalChoice* can be left empty|
+|GET|/poll/{id}|gives back *xml/json* <br> **INTERNAL SERVER ERROR** if fetch fail <br> **NO CONTENT** if item doesn't exist <br>  **OK** with *xml/json* if successful|
+|GET|/polls?queryParams|gives back *json* <br> **INTERNAL SERVER ERROR** if search fail <br> **NO CONTENT** if item doesn't exist <br> **OK** with *json* if successful| param optional, no or empty param means search for all <br> *title* <br> *description* |
+|DELETE|/poll/{id}|**INTERNAL SERVER ERROR** if delete fail <br> **NOT ACCEPTABLE** if the operation violates the rule or item not found <br> **OK** if successful| 
+|PUT|/poll/{id}|**INTERNAL SERVER ERROR** if update fail <br> **BAD REQUEST** if any of form parameters, except for comments is empty <br> **NO CONTENT** if item doesn't exist <br> **OK** if successful| **APPLICATION_FORM_URLENCODED** <br> *title* <br> *description* <br> *optionsType* either "GENERIC" or "DATE" <br> *options* date/string separated by semicolon(;) <br> *comments* can be left empty <br> *finalChoice* can be left empty|
+|PUT|/poll/finalise/{id}|**INTERNAL SERVER ERROR** if finalise fail <br> **BAD REQUEST** if any of form parameters, except for comments is empty <br> **NO CONTENT** if item doesn't exist <br> **OK** if successful| **APPLICATION_FORM_URLENCODED** <br> *title* <br> *description* <br> *optionsType* either "GENERIC" or "DATE" <br> *options* date/string separated by semicolon(;) <br> *comments* can be left empty <br> *finalChoice* can be left empty|
