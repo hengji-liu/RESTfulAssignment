@@ -30,7 +30,6 @@ public class ApplicationServices {
 
 	@GET
 	@Path("/application/{appId}")
-	@Consumes(MediaType.TEXT_PLAIN)
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response get(@HeaderParam("accept") String type, @PathParam("appId") String appId) {
 		// validation, appId should be an int
@@ -40,11 +39,9 @@ public class ApplicationServices {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// validation media type
-		if (type.equals(MediaType.WILDCARD) //
-				|| type.equals(MediaType.APPLICATION_JSON) //
-				|| type.equals(MediaType.APPLICATION_XML)) {
-			// do nothing
-		} else {// other type not supported
+		if (!type.equals(MediaType.WILDCARD) //
+				&& !type.equals(MediaType.APPLICATION_JSON) //
+				&& !type.equals(MediaType.APPLICATION_XML)) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// get item
@@ -65,10 +62,8 @@ public class ApplicationServices {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getAppByJob(@HeaderParam("accept") String type, @QueryParam("jobId") String jobId) {
 		// validation media type
-		if (type.equals(MediaType.WILDCARD) //
-				|| type.equals(MediaType.APPLICATION_JSON)) {
-			// do nothing
-		} else {// other type not supported
+		if (!type.equals(MediaType.WILDCARD) //
+				&& !type.equals(MediaType.APPLICATION_JSON)) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// if no query param, do find all
@@ -88,7 +83,7 @@ public class ApplicationServices {
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 		}
-		// search on at least one param
+		// find applications by jobId
 		List<Application> list = aDao.findByJobId(jobId);
 		if (null != list) {
 			return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
@@ -102,10 +97,12 @@ public class ApplicationServices {
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response post(Application obj) {
 		// validation, appId must be null or empty
-		if (!(null == obj.getAppId() || "".equals(obj.getAppId())))
+		String appId = obj.getAppId();
+		if (null != appId && !"".equals(appId))
 			return Response.status(Status.BAD_REQUEST).build();
 		// validation, status must be null or empty
-		if (!(null == obj.getStatus() || "".equals(obj.getStatus())))
+		String status = obj.getStatus();
+		if (null != status && !"".equals(status))
 			return Response.status(Status.BAD_REQUEST).build();
 		// validation, jobId must not be null and be an int
 		if (null == obj.getJobId())
@@ -145,14 +142,31 @@ public class ApplicationServices {
 	@Path("/application/{appId}")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response put(@PathParam("appId") String appId, Application obj) {
-		// validation, appId should be an int
+		// validation, appId param should be an int
 		try {
 			Integer.parseInt(appId);
 		} catch (NumberFormatException e) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
+		// validation, jobId should be an int
+		if (null != obj.getJobId()) {
+			try {
+				Integer.parseInt(obj.getJobId());
+			} catch (NumberFormatException e) {
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+		}
+		// validation, status should be an int
+		if (null != obj.getStatus()) {
+			try {
+				Integer.parseInt(obj.getStatus());
+			} catch (NumberFormatException e) {
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+		}
 		// validation, appId in payload must be null or empty
-		if (!(null == obj.getAppId() || "".equals(obj.getAppId())))
+		String appIdPayload = obj.getAppId();
+		if (null != appIdPayload && !"".equals(appIdPayload))
 			return Response.status(Status.BAD_REQUEST).build();
 		// validation, has something to update
 		boolean hasUpdate = false;
@@ -162,28 +176,14 @@ public class ApplicationServices {
 		hasUpdate |= (null != obj.getStatus());
 		if (!hasUpdate)
 			return Response.status(Status.BAD_REQUEST).build();
-		// validation, jobId should be an int
-		if ( null != obj.getJobId()) {
-			try {
-				Integer.parseInt(obj.getJobId());
-			} catch (NumberFormatException e) {
-				return Response.status(Status.BAD_REQUEST).build();
-			}
-		}
-		// validation, jobId should be an int
-		if ( null != obj.getStatus()) {
-			try {
-				Integer.parseInt(obj.getStatus());
-			} catch (NumberFormatException e) {
-				return Response.status(Status.BAD_REQUEST).build();
-			}
-		}
 		// check item exists
 		Application p = aDao.findById(appId);
 		if (null == p)
 			return Response.status(Status.NOT_FOUND).build();
-		// TODO check status, description very vague. FORBIDDEN
-
+		// cannot update application if already in-review
+		int status = Integer.parseInt(p.getStatus());
+		if (status >= ApplicationStatus.IN_REVIEW)
+			return Response.status(Status.FORBIDDEN).build();
 		// update
 		obj.setAppId(appId);
 		int affectedRowCount = aDao.update(obj);
@@ -191,6 +191,43 @@ public class ApplicationServices {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		} else {
 			return Response.status(Status.NO_CONTENT).build();
+		}
+	}
+
+	@PUT
+	@Path("/applications/{status}/{id}") // status is rejected or accept
+	public Response updateStatus(@PathParam("status") String status, @PathParam("id") String id) {
+		// validation, id should be an int
+		try {
+			Integer.parseInt(id);
+		} catch (NumberFormatException e) {
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+		// rejected or accepted
+		if ("rejected".equals(status) || "accepted".equals(status)) {
+			Application a = aDao.findById(id);
+			// check item exist
+			if (null == a)
+				return Response.status(Status.NOT_FOUND).build();
+			// check old status
+			if (Integer.parseInt(a.getStatus()) < ApplicationStatus.IN_REVIEW)
+				return Response.status(Status.FORBIDDEN).build();
+			switch (status) {
+			case "rejected":
+				a.setStatus(String.valueOf(ApplicationStatus.REJECTED));
+				break;
+			default: // accepted
+				a.setStatus(String.valueOf(ApplicationStatus.ACCEPTED));
+				break;
+			}
+			int affectedRowCount = aDao.update(a);
+			if (0 == affectedRowCount) { // update fail
+				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+			} else {
+				return Response.status(Status.NO_CONTENT).build();
+			}
+		} else {
+			return Response.status(Status.METHOD_NOT_ALLOWED).build();
 		}
 	}
 }
