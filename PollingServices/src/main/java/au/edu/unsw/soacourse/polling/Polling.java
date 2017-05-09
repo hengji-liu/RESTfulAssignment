@@ -12,6 +12,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -37,10 +38,12 @@ import au.edu.unsw.soacourse.polling.beans.Vote;
 @Path("/polling")
 public class Polling {
 	private final static String DATABASE_URL = "jdbc:sqlite:polling.db";
+	private final static String SECURITY_KEY = "i-am-foundit";
 	
 	private Dao<Poll, String> pollDao;
 	private Dao<Vote, String> voteDao;
 	protected ConnectionSource connectionSource;
+	
 	
 	@Context
 	UriInfo uri;
@@ -238,10 +241,20 @@ public class Polling {
     		@FormParam("description") String description,
     		@FormParam("optionsType") String optionsType,
     		@FormParam("comments") String comments,
-    		@FormParam("options") String options) {
+    		@FormParam("options") String options,
+    		@HeaderParam("Security-Key") String securityKey,
+    		@HeaderParam("Short-Key") String shortKey) {
+    	if (!securityKey.equals(SECURITY_KEY)) {
+    		return Response.status(Status.FORBIDDEN).build();
+    	}
+    	
+    	if (!shortKey.equals("app-manager")) {
+    		return Response.status(Status.UNAUTHORIZED).build();
+    	}
+    	
 		if (title.isEmpty() || description.isEmpty() || optionsType.isEmpty() || options.isEmpty()) {
 			return Response.status(Status.BAD_REQUEST).build();
-		} else if (optionsType.toUpperCase() != "GENERIC" || optionsType.toUpperCase() != "DATE") {
+		} else if (!(optionsType.toUpperCase().equals("GENERIC") || optionsType.toUpperCase().equals("DATE"))) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		
@@ -360,6 +373,8 @@ public class Polling {
     		@FormParam("finalChoice") String finalChoice) {
 		if (title.isEmpty() || description.isEmpty() || optionsType.isEmpty() || options.isEmpty()) {
 			return Response.status(Status.BAD_REQUEST).build();
+		} else if (!(optionsType.toUpperCase() != "GENERIC" || optionsType.toUpperCase() != "DATE")) {
+			return Response.status(Status.BAD_REQUEST).build();
 		}
 		
         try {
@@ -418,6 +433,8 @@ public class Polling {
     		@FormParam("options") String options,
     		@FormParam("finalChoice") String finalChoice) {
 		if (title.isEmpty() || description.isEmpty() || optionsType.isEmpty() || options.isEmpty() || finalChoice.isEmpty()) {
+			return Response.status(Status.BAD_REQUEST).build();
+		} else if (!(optionsType.toUpperCase() != "GENERIC" || optionsType.toUpperCase() != "DATE")) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		
