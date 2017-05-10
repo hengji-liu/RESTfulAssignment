@@ -4,8 +4,40 @@
   <artifactId>FoundITCo</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>war</packaging>
+  <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
+		<dependency>
+		    <groupId>org.xerial</groupId>
+		    <artifactId>sqlite-jdbc</artifactId>
+		    <version>3.16.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.j256.ormlite/ormlite-jdbc -->
+		<dependency>
+		    <groupId>com.j256.ormlite</groupId>
+		    <artifactId>ormlite-jdbc</artifactId>
+		    <version>5.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.j256.ormlite/ormlite-core -->
+		<dependency>
+		    <groupId>com.j256.ormlite</groupId>
+		    <artifactId>ormlite-core</artifactId>
+		    <version>5.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/javax.servlet.jsp.jstl/javax.servlet.jsp.jstl-api -->
+		<dependency>
+		    <groupId>javax.servlet.jsp.jstl</groupId>
+		    <artifactId>javax.servlet.jsp.jstl-api</artifactId>
+		    <version>1.2.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.glassfish.web/javax.servlet.jsp.jstl -->
+		<dependency>
+		    <groupId>org.glassfish.web</groupId>
+		    <artifactId>javax.servlet.jsp.jstl</artifactId>
+		    <version>1.2.4</version>
+		</dependency>
+  </dependencies>
   <build>
-    <sourceDirectory>src</sourceDirectory>
+    <sourceDirectory>src/main/java</sourceDirectory>
     <plugins>
       <plugin>
         <artifactId>maven-war-plugin</artifactId>

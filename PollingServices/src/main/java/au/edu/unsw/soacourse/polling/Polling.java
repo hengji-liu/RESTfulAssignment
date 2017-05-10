@@ -38,12 +38,11 @@ import au.edu.unsw.soacourse.polling.beans.Vote;
 @Path("/polling")
 public class Polling {
 	private final static String DATABASE_URL = "jdbc:sqlite:polling.db";
-	private final static String SECURITY_KEY = "i-am-foundit";
+	private final static String SECURITY_KEY = "i-am-foundit";	
 	
 	private Dao<Poll, String> pollDao;
 	private Dao<Vote, String> voteDao;
 	protected ConnectionSource connectionSource;
-	
 	
 	@Context
 	UriInfo uri;
