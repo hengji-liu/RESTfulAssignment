@@ -39,7 +39,7 @@ sent invitation = 4<br>
 |PUT|/postings/in_review/{id}| <br>**BAD REQUEST** if wrong syntax<br> **NOT FOUND** if item doesn't exist <br> **FORBIDDEN** if status move backward <br>  **INTERNAL SERVER ERROR** if update fail <br> **NO CONTENT** if successful|
 |PUT|/postings/processed/{id}| <br>**BAD REQUEST** if wrong syntax<br> **NOT FOUND** if item doesn't exist <br> **FORBIDDEN** if status move backward <br>  **INTERNAL SERVER ERROR** if update fail <br> **NO CONTENT** if successful|
 |PUT|/postings/sent_invitations/{id}| <br>**BAD REQUEST** if wrong syntax<br> **NOT FOUND** if item doesn't exist <br> **FORBIDDEN** if status move backward <br>  **INTERNAL SERVER ERROR** if update fail <br> **NO CONTENT** if successful|
-|DELETE|/posting/{id}|**BAD REQUEST** if wrong syntax <br> **NOT FOUND** if item doesn't exist <br> **FORBIDDEN** if item already has application <br> **INTERNAL SERVER ERROR** if insert fail <br> **NO CONTENT** if successful|
+|DELETE|/postings/{id}|**BAD REQUEST** if wrong syntax <br> **NOT FOUND** if item doesn't exist <br> **FORBIDDEN** if item already has application <br> **INTERNAL SERVER ERROR** if insert fail <br> **NO CONTENT** if successful|
 
 ### appliaction
 
