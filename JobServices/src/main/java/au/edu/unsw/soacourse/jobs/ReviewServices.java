@@ -32,7 +32,7 @@ public class ReviewServices {
 	private ApplicationsDao aDao = new ApplicationsDao();
 
 	@GET
-	@Path("/review/{rId}")
+	@Path("/reviews/{rId}")
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response get(@HeaderParam("accept") String type, @PathParam("rId") String rId) {
 		// validation, rId should be an int
@@ -59,21 +59,27 @@ public class ReviewServices {
 	}
 
 	@GET
-	@Path("/reviews") // reviews?appId=x
+	@Path("/reviews")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getAllReviews(@HeaderParam("accept") String type) {
+		// validation media type
+		if (!type.equals(MediaType.WILDCARD) && !type.equals(MediaType.APPLICATION_JSON))
+			return Response.status(Status.BAD_REQUEST).build();
+		List<Review> list = rDao.findAll();
+		if (null != list) {
+			return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
+		} else {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
+	@GET
+	@Path("applications/{appId}/reviews")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getReviewByApp(@HeaderParam("accept") String type, @QueryParam("appId") String appId) {
 		// validation media type
 		if (!type.equals(MediaType.WILDCARD) && !type.equals(MediaType.APPLICATION_JSON))
 			return Response.status(Status.BAD_REQUEST).build();
-		// if no query param, do find all
-		if (null == appId || "".equals(appId)) {
-			List<Review> list = rDao.findAll();
-			if (null != list) {
-				return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
-			} else {
-				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-			}
-		}
 		// validation, appId is an valid int
 		if (null != appId && !"".equals(appId)) {
 			try {
@@ -92,7 +98,7 @@ public class ReviewServices {
 	}
 
 	@POST
-	@Path("/review")
+	@Path("/reviews")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response post(Review obj) {
 		// validation, reviewId must be null or empty
@@ -146,7 +152,7 @@ public class ReviewServices {
 	}
 
 	@PUT
-	@Path("/review/{rId}")
+	@Path("/reviews/{rId}")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response put(@PathParam("rId") String rId, Review obj) {
 		// validation, rId should be an int
