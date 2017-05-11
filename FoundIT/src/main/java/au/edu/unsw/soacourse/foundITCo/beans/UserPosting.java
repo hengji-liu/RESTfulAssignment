@@ -5,9 +5,9 @@ import com.j256.ormlite.field.DatabaseField;
 public class UserPosting {
 	@DatabaseField(id = true, generatedId = true)
 	private String id;
-	@DatabaseField
-	private User user;
 	@DatabaseField(foreign = true, canBeNull = false)
+	private User user;
+	@DatabaseField
 	private String posting_id;
 	
 	public UserPosting() {
