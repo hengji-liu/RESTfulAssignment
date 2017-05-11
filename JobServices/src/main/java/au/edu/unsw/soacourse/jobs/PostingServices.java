@@ -28,7 +28,7 @@ public class PostingServices {
 	private ApplicationsDao aDao = new ApplicationsDao();
 
 	@GET
-	@Path("/posting/{id}")
+	@Path("/postings/{id}")
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response get(@HeaderParam("accept") String type, @PathParam("id") String id) {
 		// validation, id should be an int
@@ -55,7 +55,7 @@ public class PostingServices {
 	}
 
 	@POST
-	@Path("/posting")
+	@Path("/postings")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response post(Posting obj) {
 		// validation, jobId must be null or empty
@@ -100,7 +100,7 @@ public class PostingServices {
 	}
 
 	@DELETE
-	@Path("/posting/{id}")
+	@Path("/postings/{id}")
 	public Response del(@PathParam("id") String id) {
 		// validation, id should be an int
 		try {
@@ -129,7 +129,7 @@ public class PostingServices {
 	}
 
 	@PUT
-	@Path("/posting/{id}")
+	@Path("/postings/{id}")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response put(@PathParam("id") String id, Posting obj) {
 		// validation, id param should be an int

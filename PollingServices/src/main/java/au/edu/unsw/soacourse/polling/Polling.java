@@ -36,7 +36,7 @@ import au.edu.unsw.soacourse.polling.beans.Vote;
 
 @Path("/polling")
 public class Polling {
-	private final String DATABASE_URL = "jdbc:sqlite:"+ getClass().getClassLoader().getResource("/polling.db");;
+	private final String DATABASE_URL = "jdbc:sqlite:"+ getClass().getClassLoader().getResource("/polling.db");
 	private final static String SECURITY_KEY = "i-am-foundit";	
 	
 	private Dao<Poll, String> pollDao;

@@ -13,7 +13,7 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
 public class DBUtil {
-	private final static String DATABASE_URL = "jdbc:sqlite:foundITCo.db";
+	private static final String DATABASE_URL = "jdbc:sqlite:"+ DBUtil.class.getClassLoader().getResource("/foundITCo.db");
 	
 	private static ConnectionSource connectionSource;
 	private static Dao<User, String> userDao;

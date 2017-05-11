@@ -10,7 +10,6 @@
      <h2>FoundIT Co.</h2>
       
      <ul>
-        <li><a href="home">Home</a></li>
         <li><a href="signup">Sign up</a></li>
         <li><a href="signin">Sign in</a></li>
      </ul>

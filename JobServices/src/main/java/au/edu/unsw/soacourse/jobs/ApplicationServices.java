@@ -29,7 +29,7 @@ public class ApplicationServices {
 	private PostingsDao pDao = new PostingsDao();
 
 	@GET
-	@Path("/application/{appId}")
+	@Path("/applications/{appId}")
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response get(@HeaderParam("accept") String type, @PathParam("appId") String appId) {
 		// validation, appId should be an int
@@ -56,22 +56,30 @@ public class ApplicationServices {
 	}
 
 	@GET
-	@Path("/applications") // applications?jobId=x
+	@Path("/applications")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getAllApps(@HeaderParam("accept") String type) {
+		// validation media type
+		if (!type.equals(MediaType.WILDCARD) //
+				&& !type.equals(MediaType.APPLICATION_JSON)) {
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+		List<Application> list = aDao.findAll();
+		if (null != list) {
+			return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
+		} else {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
+	@GET
+	@Path("/postings/{jobId}/applications")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getAppByJob(@HeaderParam("accept") String type, @QueryParam("jobId") String jobId) {
 		// validation media type
 		if (!type.equals(MediaType.WILDCARD) //
 				&& !type.equals(MediaType.APPLICATION_JSON)) {
 			return Response.status(Status.BAD_REQUEST).build();
-		}
-		// if no query param, do find all
-		if (null == jobId || "".equals(jobId)) {
-			List<Application> list = aDao.findAll();
-			if (null != list) {
-				return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
-			} else {
-				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-			}
 		}
 		// validation, jobId is an valid int
 		if (null != jobId && !"".equals(jobId)) {
@@ -91,7 +99,7 @@ public class ApplicationServices {
 	}
 
 	@POST
-	@Path("/application")
+	@Path("/applications")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response post(Application obj) {
 		// validation, appId must be null or empty
@@ -137,7 +145,7 @@ public class ApplicationServices {
 	}
 
 	@PUT
-	@Path("/application/{appId}")
+	@Path("/applications/{appId}")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response put(@PathParam("appId") String appId, Application obj) {
 		// validation, appId param should be an int
