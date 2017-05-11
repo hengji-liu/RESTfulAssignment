@@ -17,6 +17,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import au.edu.unsw.soacourse.jobs.auth.Roles;
+import au.edu.unsw.soacourse.jobs.auth.RolesAllowed;
+import au.edu.unsw.soacourse.jobs.auth.SecuredByKey;
 import au.edu.unsw.soacourse.jobs.dao.ApplicationsDao;
 import au.edu.unsw.soacourse.jobs.dao.PostingsDao;
 import au.edu.unsw.soacourse.jobs.model.Application;
@@ -24,6 +27,7 @@ import au.edu.unsw.soacourse.jobs.model.ApplicationStatus;
 import au.edu.unsw.soacourse.jobs.model.Posting;
 import au.edu.unsw.soacourse.jobs.model.PostingStatus;
 
+@SecuredByKey
 public class ApplicationServices {
 	private ApplicationsDao aDao = new ApplicationsDao();
 	private PostingsDao pDao = new PostingsDao();
@@ -31,7 +35,9 @@ public class ApplicationServices {
 	@GET
 	@Path("/applications/{appId}")
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response get(@HeaderParam("accept") String type, @PathParam("appId") String appId) {
+
 		// validation, appId should be an int
 		try {
 			Integer.parseInt(appId);
@@ -58,6 +64,7 @@ public class ApplicationServices {
 	@GET
 	@Path("/applications")
 	@Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response getAllApps(@HeaderParam("accept") String type) {
 		// validation media type
 		if (!type.equals(MediaType.WILDCARD) //
@@ -75,6 +82,7 @@ public class ApplicationServices {
 	@GET
 	@Path("/postings/{jobId}/applications")
 	@Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response getAppByJob(@HeaderParam("accept") String type, @QueryParam("jobId") String jobId) {
 		// validation media type
 		if (!type.equals(MediaType.WILDCARD) //
@@ -101,6 +109,7 @@ public class ApplicationServices {
 	@POST
 	@Path("/applications")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@RolesAllowed({ Roles.C})
 	public Response post(Application obj) {
 		// validation, appId must be null or empty
 		String appId = obj.getAppId();
@@ -147,6 +156,7 @@ public class ApplicationServices {
 	@PUT
 	@Path("/applications/{appId}")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@RolesAllowed({ Roles.C})
 	public Response put(@PathParam("appId") String appId, Application obj) {
 		// validation, appId param should be an int
 		try {
@@ -197,8 +207,8 @@ public class ApplicationServices {
 	}
 
 	@PUT
-	@Path("/applications/{status}/{id}") // status is rejected or accept or
-											// in_review
+	@Path("/applications/{status}/{id}")
+	@RolesAllowed({Roles.M, Roles.R })
 	public Response updateStatus(@PathParam("status") String status, @PathParam("id") String id) {
 		// validation, id should be an int
 		try {

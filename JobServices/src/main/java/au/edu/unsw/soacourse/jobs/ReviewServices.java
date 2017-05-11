@@ -17,6 +17,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import au.edu.unsw.soacourse.jobs.auth.Roles;
+import au.edu.unsw.soacourse.jobs.auth.RolesAllowed;
+import au.edu.unsw.soacourse.jobs.auth.SecuredByKey;
 import au.edu.unsw.soacourse.jobs.dao.ApplicationsDao;
 import au.edu.unsw.soacourse.jobs.dao.PostingsDao;
 import au.edu.unsw.soacourse.jobs.dao.ReviewsDao;
@@ -26,6 +29,8 @@ import au.edu.unsw.soacourse.jobs.model.PostingStatus;
 import au.edu.unsw.soacourse.jobs.model.Review;
 import au.edu.unsw.soacourse.jobs.model.ReviewDecisoin;
 
+
+@SecuredByKey
 public class ReviewServices {
 	private ReviewsDao rDao = new ReviewsDao();
 	private PostingsDao pDao = new PostingsDao();
@@ -34,6 +39,7 @@ public class ReviewServices {
 	@GET
 	@Path("/reviews/{rId}")
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response get(@HeaderParam("accept") String type, @PathParam("rId") String rId) {
 		// validation, rId should be an int
 		try {
@@ -61,6 +67,7 @@ public class ReviewServices {
 	@GET
 	@Path("/reviews")
 	@Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response getAllReviews(@HeaderParam("accept") String type) {
 		// validation media type
 		if (!type.equals(MediaType.WILDCARD) && !type.equals(MediaType.APPLICATION_JSON))
@@ -76,6 +83,7 @@ public class ReviewServices {
 	@GET
 	@Path("applications/{appId}/reviews")
 	@Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response getReviewByApp(@HeaderParam("accept") String type, @QueryParam("appId") String appId) {
 		// validation media type
 		if (!type.equals(MediaType.WILDCARD) && !type.equals(MediaType.APPLICATION_JSON))
@@ -100,6 +108,7 @@ public class ReviewServices {
 	@POST
 	@Path("/reviews")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@RolesAllowed({ Roles.R })
 	public Response post(Review obj) {
 		// validation, reviewId must be null or empty
 		String reviewId = obj.getReviewId();
@@ -154,6 +163,7 @@ public class ReviewServices {
 	@PUT
 	@Path("/reviews/{rId}")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@RolesAllowed({ Roles.R })
 	public Response put(@PathParam("rId") String rId, Review obj) {
 		// validation, rId should be an int
 		try {
