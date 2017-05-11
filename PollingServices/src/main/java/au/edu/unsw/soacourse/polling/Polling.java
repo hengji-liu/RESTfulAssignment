@@ -25,14 +25,14 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import au.edu.unsw.soacourse.polling.beans.Poll;
+import au.edu.unsw.soacourse.polling.beans.Vote;
+
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
-
-import au.edu.unsw.soacourse.polling.beans.Poll;
-import au.edu.unsw.soacourse.polling.beans.Vote;
 
 @Path("/polling")
 public class Polling {

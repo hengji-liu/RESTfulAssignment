@@ -27,7 +27,7 @@ public class SessionFilter implements Filter {
      */
     public SessionFilter() {
         // TODO Auto-generated constructor stub
-    }
+     	 	}
 
 	/**
 	 * @see Filter#destroy()
@@ -54,18 +54,11 @@ public class SessionFilter implements Filter {
 			chain.doFilter(request, response);
 			return;
 		} 
-//		else {
-//			if ()
-//		    
-////			if (pathInfo != null) {
-////				urlPattern = servletPath + "/*";
-////			}
-//			res.sendRedirect("signin.jsp");
-//			return;
-//	    
-//		}
+		else {
+			res.sendRedirect("signin.jsp");
+			return;   
+		}
 	 
-		chain.doFilter(request, response);
 //	       // Connection was created in JDBCFilter.
 //	       Connection conn = MyUtils.getStoredConnection(request);
 //	 
