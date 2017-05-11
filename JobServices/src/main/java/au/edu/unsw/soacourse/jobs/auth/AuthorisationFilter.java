@@ -32,7 +32,7 @@ public class AuthorisationFilter implements ContainerRequestFilter {
 		// List<Roles> classRoles = extractRoles(resourceClass);
 
 		if (!requestContext.getHeaders().containsKey("Short-Key")) {
-			requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+			requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).build());
 		} else {
 			// get short key
 			String key = requestContext.getHeaderString("Short-Key");
@@ -42,7 +42,7 @@ public class AuthorisationFilter implements ContainerRequestFilter {
 			// verify
 			String role = authDao.getPartnerUserRoleGroup(key);
 			if (null == role || !methondRoles.contains(role))
-				requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+				requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).build());
 		}
 	}
 

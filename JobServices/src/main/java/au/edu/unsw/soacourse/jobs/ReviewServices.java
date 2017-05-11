@@ -29,7 +29,6 @@ import au.edu.unsw.soacourse.jobs.model.PostingStatus;
 import au.edu.unsw.soacourse.jobs.model.Review;
 import au.edu.unsw.soacourse.jobs.model.ReviewDecisoin;
 
-
 @SecuredByKey
 public class ReviewServices {
 	private ReviewsDao rDao = new ReviewsDao();
@@ -45,12 +44,6 @@ public class ReviewServices {
 		try {
 			Integer.parseInt(rId);
 		} catch (NumberFormatException e) {
-			return Response.status(Status.BAD_REQUEST).build();
-		}
-		// validation media type
-		if (!type.equals(MediaType.WILDCARD) //
-				&& !type.equals(MediaType.APPLICATION_JSON) //
-				&& !type.equals(MediaType.APPLICATION_XML)) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// get item
@@ -69,9 +62,6 @@ public class ReviewServices {
 	@Produces(MediaType.APPLICATION_JSON)
 	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response getAllReviews(@HeaderParam("accept") String type) {
-		// validation media type
-		if (!type.equals(MediaType.WILDCARD) && !type.equals(MediaType.APPLICATION_JSON))
-			return Response.status(Status.BAD_REQUEST).build();
 		List<Review> list = rDao.findAll();
 		if (null != list) {
 			return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
@@ -85,9 +75,6 @@ public class ReviewServices {
 	@Produces(MediaType.APPLICATION_JSON)
 	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response getReviewByApp(@HeaderParam("accept") String type, @QueryParam("appId") String appId) {
-		// validation media type
-		if (!type.equals(MediaType.WILDCARD) && !type.equals(MediaType.APPLICATION_JSON))
-			return Response.status(Status.BAD_REQUEST).build();
 		// validation, appId is an valid int
 		if (null != appId && !"".equals(appId)) {
 			try {
@@ -144,7 +131,7 @@ public class ReviewServices {
 		Application a = aDao.findById(obj.getAppId());
 		Posting p = pDao.findById(a.getJobId());
 		if (PostingStatus.IN_REVIEW != Integer.parseInt(p.getStatus()))
-			return Response.status(Status.FORBIDDEN).build();
+			return Response.status(Status.BAD_REQUEST).entity("posting status is not in_review, can't post").build();
 		// insert
 		int insertedId = rDao.insert(obj);
 		if (0 != insertedId) {
@@ -191,7 +178,7 @@ public class ReviewServices {
 		Application a = aDao.findById(obj.getAppId());
 		Posting p = pDao.findById(a.getJobId());
 		if (PostingStatus.IN_REVIEW != Integer.parseInt(p.getStatus()))
-			return Response.status(Status.FORBIDDEN).build();
+			return Response.status(Status.BAD_REQUEST).entity("posting status is not in_review, can't update").build();
 		// update
 		obj.setReviewId(rId);
 		int affectedRowCount = rDao.update(obj);
