@@ -1,4 +1,4 @@
-package foundITCo.servlet;
+package au.edu.unsw.soacourse.foundITCo.servlets;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -15,7 +15,8 @@ import javax.ws.rs.core.MediaType;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
-import foundITCo.bean.Posting;
+import au.edu.unsw.soacourse.foundITCo.beans.Posting;
+
 
 public class PostingServlet extends HttpServlet {
 	/**

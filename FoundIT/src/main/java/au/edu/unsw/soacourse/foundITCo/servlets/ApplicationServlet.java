@@ -1,4 +1,4 @@
-package foundITCo.servlet;
+package au.edu.unsw.soacourse.foundITCo.servlets;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;

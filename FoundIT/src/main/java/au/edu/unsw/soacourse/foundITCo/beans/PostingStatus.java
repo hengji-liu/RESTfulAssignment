@@ -1,4 +1,4 @@
-package foundITCo.bean;
+package au.edu.unsw.soacourse.foundITCo.beans;
 
 public class PostingStatus {
 	public static final int CREATED = 0;

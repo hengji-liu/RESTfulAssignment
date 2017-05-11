@@ -20,7 +20,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Link;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -37,13 +36,12 @@ import au.edu.unsw.soacourse.polling.beans.Vote;
 
 @Path("/polling")
 public class Polling {
-	private final static String DATABASE_URL = "jdbc:sqlite:polling.db";
-	private final static String SECURITY_KEY = "i-am-foundit";
+	private final String DATABASE_URL = "jdbc:sqlite:"+ getClass().getClassLoader().getResource("/polling.db");
+	private final static String SECURITY_KEY = "i-am-foundit";	
 	
 	private Dao<Poll, String> pollDao;
 	private Dao<Vote, String> voteDao;
 	protected ConnectionSource connectionSource;
-	
 	
 	@Context
 	UriInfo uri;
@@ -108,11 +106,17 @@ public class Polling {
     
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Path("/vote")
+    @Path("/polls/{pollId}/votes")
     public Response addNewVote(
     		@FormParam("participantName") String participantName, 
     		@FormParam("chosenOption") String chosenOption,
-    		@FormParam("pollId") String pollId) {
+    		@PathParam("pollId") String pollId,    		
+    		@HeaderParam("Security-Key") String securityKey,
+    		@HeaderParam("Short-Key") String shortKey) {
+    	if (securityKey == null || !securityKey.equals(SECURITY_KEY)) {
+    		return Response.status(Status.FORBIDDEN).build();
+    	}
+    	
 		if (participantName.isEmpty() || chosenOption.isEmpty() || pollId.isEmpty()) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
@@ -121,11 +125,12 @@ public class Polling {
     	try {
         	Poll poll = getPollDao().queryForId(pollId);
         	Vote outputVote = new Vote(voteId, participantName, chosenOption, poll);
-			URI outputVoteUri = new URI(uri.getBaseUri() + "polling/vote/" + voteId);
+			URI outputVoteUri = new URI(uri.getBaseUri() + "polling/polls/" + pollId + "/votes/" + voteId);
 			
-        	if (getVoteDao().create(outputVote) > 0) 
+        	if (getVoteDao().create(outputVote) > 0) {
         		connectionSource.close();
 				return Response.created(outputVoteUri).build();
+        	}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -148,9 +153,16 @@ public class Polling {
     }
     
     @GET
-    @Path("/vote/{id}")
+    @Path("/polls/{pollId}/votes/{id}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response getVote(@PathParam("id") String voteId) {
+    public Response getVote(
+    		@PathParam("id") String voteId,    		
+    		@HeaderParam("Security-Key") String securityKey,
+    		@HeaderParam("Short-Key") String shortKey) {
+    	if (securityKey == null || !securityKey.equals(SECURITY_KEY)) {
+    		return Response.status(Status.FORBIDDEN).build();
+    	}
+    	
         try {
         	Vote outVote = getVoteDao().queryForId(voteId);
 //        	getPollDao().refresh(outVote.getPoll());
@@ -179,13 +191,19 @@ public class Polling {
     }
     
     @PUT
-    @Path("/vote/{id}")
+    @Path("/polls/{pollId}/votes/{id}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response updateVote(    		
     		@PathParam("id") String voteId,
     		@FormParam("participantName") String participantName, 
     		@FormParam("chosenOption") String chosenOption,
-    		@FormParam("pollId") String pollId) {
+    		@FormParam("pollId") String pollId,    		
+    		@HeaderParam("Security-Key") String securityKey,
+    		@HeaderParam("Short-Key") String shortKey) {
+    	if (securityKey == null || !securityKey.equals(SECURITY_KEY)) {
+    		return Response.status(Status.FORBIDDEN).build();
+    	}
+    	
 		if (participantName.isEmpty() || chosenOption.isEmpty() || pollId.isEmpty() || voteId.isEmpty()) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
@@ -235,7 +253,7 @@ public class Polling {
     
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Path("/poll")
+    @Path("/polls")
     public Response addNewPoll(
     		@FormParam("title") String title, 
     		@FormParam("description") String description,
@@ -244,15 +262,15 @@ public class Polling {
     		@FormParam("options") String options,
     		@HeaderParam("Security-Key") String securityKey,
     		@HeaderParam("Short-Key") String shortKey) {
-    	if (!securityKey.equals(SECURITY_KEY)) {
+    	if (securityKey == null || !securityKey.equals(SECURITY_KEY)) {
     		return Response.status(Status.FORBIDDEN).build();
     	}
     	
-    	if (!shortKey.equals("app-manager")) {
+    	if (shortKey == null || !shortKey.equals("app-manager")) {
     		return Response.status(Status.UNAUTHORIZED).build();
     	}
     	
-		if (title.isEmpty() || description.isEmpty() || optionsType.isEmpty() || options.isEmpty()) {
+    	if (title.isEmpty() || description.isEmpty() || optionsType.isEmpty() || options.isEmpty()) {
 			return Response.status(Status.BAD_REQUEST).build();
 		} else if (!(optionsType.toUpperCase().equals("GENERIC") || optionsType.toUpperCase().equals("DATE"))) {
 			return Response.status(Status.BAD_REQUEST).build();
@@ -261,7 +279,7 @@ public class Polling {
     	String pollId = UUID.randomUUID().toString();
     	try {
         	Poll outputPoll = new Poll(pollId, title, description, optionsType, options, comments);
-			URI outputPollUri = new URI(uri.getBaseUri() + "polling/poll/" + pollId);
+			URI outputPollUri = new URI(uri.getBaseUri() + "polling/polls/" + pollId);
         	if (getPollDao().create(outputPoll) > 0) 
         		connectionSource.close();
 				return Response.created(outputPollUri).build();
@@ -287,9 +305,16 @@ public class Polling {
     }
 
     @GET
-    @Path("/poll/{id}")
+    @Path("/polls/{id}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response getPoll(@PathParam("id") String pollId) {
+    public Response getPoll(
+    		@PathParam("id") String pollId,
+    		@HeaderParam("Security-Key") String securityKey,
+    		@HeaderParam("Short-Key") String shortKey) {
+    	if (securityKey == null || !securityKey.equals(SECURITY_KEY)) {
+    		return Response.status(Status.FORBIDDEN).build();
+    	}
+
         try {
         	Poll outPoll = getPollDao().queryForId(pollId);
         	
@@ -298,8 +323,8 @@ public class Polling {
             	outPoll.setVotes(votes);
 
             	connectionSource.close();
-            	Link finaliseLink = Link.fromUri(uri.getBaseUri() + "polling/poll/finalise/" + pollId).build();
-        		return Response.ok(outPoll).links(finaliseLink).build();
+            	String addVote = uri.getBaseUri() + "polling/polls/" + pollId + "/votes";
+        		return Response.ok(outPoll).header("Add-Vote", addVote).build();
         	}
         	
     		connectionSource.close();
@@ -325,7 +350,13 @@ public class Polling {
     @GET
     @Path("/polls")
     @Produces("application/json")
-    public Response getPolls() {
+    public Response getPolls(    		
+    		@HeaderParam("Security-Key") String securityKey,
+    		@HeaderParam("Short-Key") String shortKey) {
+    	if (securityKey == null || !securityKey.equals(SECURITY_KEY)) {
+    		return Response.status(Status.FORBIDDEN).build();
+    	}
+    	
         try {
         	List<Poll> outPolls = getPollDao().queryForAll();
         	if (outPolls != null) {
@@ -361,7 +392,7 @@ public class Polling {
     }
     
     @PUT
-    @Path("/poll/{id}")
+    @Path("/polls/{id}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response updatePoll(
     		@PathParam("id") String pollId,
@@ -370,7 +401,17 @@ public class Polling {
     		@FormParam("optionsType") String optionsType,
     		@FormParam("comments") String comments,
     		@FormParam("options") String options,
-    		@FormParam("finalChoice") String finalChoice) {
+    		@FormParam("finalChoice") String finalChoice,
+    		@HeaderParam("Security-Key") String securityKey,
+    		@HeaderParam("Short-Key") String shortKey) {
+    	if (securityKey == null || !securityKey.equals(SECURITY_KEY)) {
+    		return Response.status(Status.FORBIDDEN).build();
+    	}
+    	
+    	if (shortKey == null || !shortKey.equals("app-manager")) {
+    		return Response.status(Status.UNAUTHORIZED).build();
+    	}
+    	
 		if (title.isEmpty() || description.isEmpty() || optionsType.isEmpty() || options.isEmpty()) {
 			return Response.status(Status.BAD_REQUEST).build();
 		} else if (!(optionsType.toUpperCase() != "GENERIC" || optionsType.toUpperCase() != "DATE")) {
@@ -422,7 +463,7 @@ public class Polling {
     }
     
     @PUT
-    @Path("/poll/finalise/{id}")
+    @Path("/polls/finalise/{id}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response finalisePoll(
     		@PathParam("id") String pollId,
@@ -431,7 +472,17 @@ public class Polling {
     		@FormParam("optionsType") String optionsType,
     		@FormParam("comments") String comments,
     		@FormParam("options") String options,
-    		@FormParam("finalChoice") String finalChoice) {
+    		@FormParam("finalChoice") String finalChoice,    		
+    		@HeaderParam("Security-Key") String securityKey,
+    		@HeaderParam("Short-Key") String shortKey) {
+    	if (securityKey == null || !securityKey.equals(SECURITY_KEY)) {
+    		return Response.status(Status.FORBIDDEN).build();
+    	}
+    	
+    	if (shortKey == null || !shortKey.equals("app-manager")) {
+    		return Response.status(Status.UNAUTHORIZED).build();
+    	}
+    	
 		if (title.isEmpty() || description.isEmpty() || optionsType.isEmpty() || options.isEmpty() || finalChoice.isEmpty()) {
 			return Response.status(Status.BAD_REQUEST).build();
 		} else if (!(optionsType.toUpperCase() != "GENERIC" || optionsType.toUpperCase() != "DATE")) {
@@ -476,8 +527,19 @@ public class Polling {
     }
     
     @DELETE
-    @Path("/poll/{id}")
-    public Response deletePoll(@PathParam("id") String pollId) {
+    @Path("/polls/{id}")
+    public Response deletePoll(
+    		@PathParam("id") String pollId,    		
+    		@HeaderParam("Security-Key") String securityKey,
+    		@HeaderParam("Short-Key") String shortKey) {
+    	if (securityKey == null || !securityKey.equals(SECURITY_KEY)) {
+    		return Response.status(Status.FORBIDDEN).build();
+    	}
+    	
+    	if (shortKey == null || !shortKey.equals("app-manager")) {
+    		return Response.status(Status.UNAUTHORIZED).build();
+    	}
+    	
         try {
         	Poll deletePoll = getPollDao().queryForId(pollId);
         	
@@ -491,8 +553,8 @@ public class Polling {
         	if (votes.isEmpty()) {    	
         		if (getPollDao().delete(deletePoll) > 0) {
         			connectionSource.close();
-        			Link showAllPolls = Link.fromUri(uri.getBaseUri() + "polling/polls").build();
-            		return Response.ok().links(showAllPolls).build();
+        			String allPolls = uri.getBaseUri() + "polling/polls";
+            		return Response.ok().header("All-Polls", allPolls).build();
             	}
         	} else {
         		connectionSource.close();
@@ -525,7 +587,13 @@ public class Polling {
     		@QueryParam("title") String title,
     		@QueryParam("description") String description,
     		@QueryParam("optionType") String optionType,
-    		@QueryParam("comments") String comments) {
+    		@QueryParam("comments") String comments,    		
+    		@HeaderParam("Security-Key") String securityKey,
+    		@HeaderParam("Short-Key") String shortKey) {
+    	if (securityKey == null || !securityKey.equals(SECURITY_KEY)) {
+    		return Response.status(Status.FORBIDDEN).build();
+    	}
+    	
         try {
         	if (title.isEmpty() || description.isEmpty() || optionType.isEmpty() || comments.isEmpty()) {
             	List<Poll> outPolls = getPollDao().queryForAll();

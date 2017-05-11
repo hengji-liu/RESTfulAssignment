@@ -104,3 +104,13 @@ recommend = 1 <br>
 |DELETE|/poll/{id}|**INTERNAL SERVER ERROR** if delete fail <br> **NOT ACCEPTABLE** if the operation violates the rule or item not found <br> **OK** if successful| 
 |PUT|/poll/{id}|**INTERNAL SERVER ERROR** if update fail <br> **BAD REQUEST** if any of form parameters, except for comments is empty <br> **NO CONTENT** if item doesn't exist <br> **OK** if successful| **APPLICATION_FORM_URLENCODED** <br> *title* <br> *description* <br> *optionsType* either "GENERIC" or "DATE" <br> *options* date/string separated by semicolon(;) <br> *comments* can be left empty <br> *finalChoice* can be left empty|
 |PUT|/poll/finalise/{id}|**INTERNAL SERVER ERROR** if finalise fail <br> **BAD REQUEST** if any of form parameters, except for comments is empty <br> **NO CONTENT** if item doesn't exist <br> **OK** if successful| **APPLICATION_FORM_URLENCODED** <br> *title* <br> *description* <br> *optionsType* either "GENERIC" or "DATE" <br> *options* date/string separated by semicolon(;) <br> *comments* can be left empty <br> *finalChoice* can be left empty|
+
+---
+
+## Vote Services
+
+|Method|URL|HTTP_RESPONSE|CONSUME|
+|------|---|-------------|-------|
+|POST|/vote|**INTERNAL SERVER ERROR** if insert fail <br> **BAD REQUEST** if any of form parameters is empty <br> **CREATED** with URI in the header (location) if successful|**APPLICATION_FORM_URLENCODED** <br> *participantName* <br> *chosenOption* <br> *pollId* poolId URI <br> *options* date/string separated by semicolon(;) <br> *comments* can be left empty <br> *finalChoice* can be left empty|
+|GET|/vote/{id}|gives back *xml/json* <br> **INTERNAL SERVER ERROR** if fetch fail <br> **NO CONTENT** if item doesn't exist <br>  **OK** with *xml/json* if successful|
+|PUT|/vote/{id}|**INTERNAL SERVER ERROR** if update fail <br> **BAD REQUEST** if any of form parameters, except for comments is empty <br> **NO CONTENT** if item doesn't exist <br> **OK** if successful| **APPLICATION_FORM_URLENCODED** <br> *title* <br> *description* <br> *optionsType* either "GENERIC" or "DATE" <br> *options* date/string separated by semicolon(;) <br> *comments* can be left empty <br> *finalChoice* can be left empty|

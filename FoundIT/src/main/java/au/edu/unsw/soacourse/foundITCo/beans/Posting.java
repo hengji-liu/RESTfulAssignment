@@ -1,4 +1,4 @@
-package foundITCo.bean;
+package au.edu.unsw.soacourse.foundITCo.beans;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
