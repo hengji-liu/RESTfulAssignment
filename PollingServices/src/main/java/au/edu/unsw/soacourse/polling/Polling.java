@@ -20,7 +20,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Link;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -37,7 +36,7 @@ import au.edu.unsw.soacourse.polling.beans.Vote;
 
 @Path("/polling")
 public class Polling {
-	private final static String DATABASE_URL = "jdbc:sqlite:polling.db";
+	private final String DATABASE_URL = "jdbc:sqlite:"+ getClass().getClassLoader().getResource("/polling.db");;
 	private final static String SECURITY_KEY = "i-am-foundit";	
 	
 	private Dao<Poll, String> pollDao;
@@ -107,11 +106,11 @@ public class Polling {
     
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Path("/vote")
+    @Path("/polls/{pollId}/votes")
     public Response addNewVote(
     		@FormParam("participantName") String participantName, 
     		@FormParam("chosenOption") String chosenOption,
-    		@FormParam("pollId") String pollId) {
+    		@PathParam("pollId") String pollId) {
 		if (participantName.isEmpty() || chosenOption.isEmpty() || pollId.isEmpty()) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
@@ -120,11 +119,12 @@ public class Polling {
     	try {
         	Poll poll = getPollDao().queryForId(pollId);
         	Vote outputVote = new Vote(voteId, participantName, chosenOption, poll);
-			URI outputVoteUri = new URI(uri.getBaseUri() + "polling/vote/" + voteId);
+			URI outputVoteUri = new URI(uri.getBaseUri() + "polling/polls/" + pollId + "/votes/" + voteId);
 			
-        	if (getVoteDao().create(outputVote) > 0) 
+        	if (getVoteDao().create(outputVote) > 0) {
         		connectionSource.close();
 				return Response.created(outputVoteUri).build();
+        	}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -147,7 +147,7 @@ public class Polling {
     }
     
     @GET
-    @Path("/vote/{id}")
+    @Path("/polls/{pollId}/votes/{id}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response getVote(@PathParam("id") String voteId) {
         try {
@@ -178,7 +178,7 @@ public class Polling {
     }
     
     @PUT
-    @Path("/vote/{id}")
+    @Path("/polls/{pollId}/votes/{id}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response updateVote(    		
     		@PathParam("id") String voteId,
@@ -234,7 +234,7 @@ public class Polling {
     
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Path("/poll")
+    @Path("/polls")
     public Response addNewPoll(
     		@FormParam("title") String title, 
     		@FormParam("description") String description,
@@ -251,7 +251,7 @@ public class Polling {
     		return Response.status(Status.UNAUTHORIZED).build();
     	}
     	
-		if (title.isEmpty() || description.isEmpty() || optionsType.isEmpty() || options.isEmpty()) {
+    	if (title.isEmpty() || description.isEmpty() || optionsType.isEmpty() || options.isEmpty()) {
 			return Response.status(Status.BAD_REQUEST).build();
 		} else if (!(optionsType.toUpperCase().equals("GENERIC") || optionsType.toUpperCase().equals("DATE"))) {
 			return Response.status(Status.BAD_REQUEST).build();
@@ -260,7 +260,7 @@ public class Polling {
     	String pollId = UUID.randomUUID().toString();
     	try {
         	Poll outputPoll = new Poll(pollId, title, description, optionsType, options, comments);
-			URI outputPollUri = new URI(uri.getBaseUri() + "polling/poll/" + pollId);
+			URI outputPollUri = new URI(uri.getBaseUri() + "polling/polls/" + pollId);
         	if (getPollDao().create(outputPoll) > 0) 
         		connectionSource.close();
 				return Response.created(outputPollUri).build();
@@ -286,7 +286,7 @@ public class Polling {
     }
 
     @GET
-    @Path("/poll/{id}")
+    @Path("/polls/{id}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response getPoll(@PathParam("id") String pollId) {
         try {
@@ -297,8 +297,8 @@ public class Polling {
             	outPoll.setVotes(votes);
 
             	connectionSource.close();
-            	Link finaliseLink = Link.fromUri(uri.getBaseUri() + "polling/poll/finalise/" + pollId).build();
-        		return Response.ok(outPoll).links(finaliseLink).build();
+            	String addVote = uri.getBaseUri() + "polling/polls/" + pollId + "/votes";
+        		return Response.ok(outPoll).header("Add-Vote", addVote).build();
         	}
         	
     		connectionSource.close();
@@ -360,7 +360,7 @@ public class Polling {
     }
     
     @PUT
-    @Path("/poll/{id}")
+    @Path("/polls/{id}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response updatePoll(
     		@PathParam("id") String pollId,
@@ -421,7 +421,7 @@ public class Polling {
     }
     
     @PUT
-    @Path("/poll/finalise/{id}")
+    @Path("/polls/finalise/{id}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response finalisePoll(
     		@PathParam("id") String pollId,
@@ -475,7 +475,7 @@ public class Polling {
     }
     
     @DELETE
-    @Path("/poll/{id}")
+    @Path("/polls/{id}")
     public Response deletePoll(@PathParam("id") String pollId) {
         try {
         	Poll deletePoll = getPollDao().queryForId(pollId);
@@ -490,8 +490,8 @@ public class Polling {
         	if (votes.isEmpty()) {    	
         		if (getPollDao().delete(deletePoll) > 0) {
         			connectionSource.close();
-        			Link showAllPolls = Link.fromUri(uri.getBaseUri() + "polling/polls").build();
-            		return Response.ok().links(showAllPolls).build();
+        			String allPolls = uri.getBaseUri() + "polling/polls";
+            		return Response.ok().header("All-Polls", allPolls).build();
             	}
         	} else {
         		connectionSource.close();
