@@ -2,15 +2,15 @@ package au.edu.unsw.soacourse.foundITCo.beans;
 
 import com.j256.ormlite.field.DatabaseField;
 
-public class UserApplication {
+public class UserReview {
 	@DatabaseField(id = true, generatedId = true)
 	private String id;
 	@DatabaseField(foreign = true, canBeNull = false)
 	private User user;
 	@DatabaseField
-	private String application_id;
-
-	public UserApplication() {
+	private String review_id;
+	
+	public UserReview() {
 		
 	}
 
@@ -30,13 +30,12 @@ public class UserApplication {
 		this.user = user;
 	}
 
-	public String getApplication_id() {
-		return application_id;
+	public String getReview_id() {
+		return review_id;
 	}
 
-	public void setApplication_id(String application_id) {
-		this.application_id = application_id;
+	public void setReview_id(String review_id) {
+		this.review_id = review_id;
 	}
-	
 	
 }
