@@ -42,12 +42,6 @@ public class PostingServices {
 		} catch (NumberFormatException e) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
-		// validation media type
-		if (!type.equals(MediaType.WILDCARD) //
-				&& !type.equals(MediaType.APPLICATION_JSON) //
-				&& !type.equals(MediaType.APPLICATION_XML)) {
-			return Response.status(Status.BAD_REQUEST).build();
-		}
 		// get item
 		Posting p = pDao.findById(id);
 		if (null != p) {
@@ -122,7 +116,8 @@ public class PostingServices {
 		// check no application is associated with this posting
 		int count = aDao.countByJobId(id);
 		if (count > 0) {
-			return Response.status(Status.FORBIDDEN).build();
+			return Response.status(Status.BAD_REQUEST)
+					.entity("at least one application has been associated with this posting, can't delete").build();
 		} else if (count < 0) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -167,7 +162,8 @@ public class PostingServices {
 		// check no application is associated with this posting
 		int count = aDao.countByJobId(id);
 		if (count > 0) {
-			return Response.status(Status.FORBIDDEN).build();
+			return Response.status(Status.BAD_REQUEST)
+					.entity("at least one application has been associated with this posting, can't delete").build();
 		} else if (count < 0) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -187,10 +183,6 @@ public class PostingServices {
 	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response search(@HeaderParam("accept") String type, @QueryParam("keyword") String keyword,
 			@QueryParam("status") String status) {
-		// validation media type
-		if (!type.equals(MediaType.WILDCARD) && !type.equals(MediaType.APPLICATION_JSON))
-			return Response.status(Status.BAD_REQUEST).build();
-
 		// if no query param
 		if ((null == keyword || "".equals(keyword)) && (null == status || "".equals(status))) {
 			List<Posting> list = pDao.findAll();
@@ -210,7 +202,6 @@ public class PostingServices {
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 		}
-
 		// search on at least one param
 		List<Posting> list = pDao.search(keyword, status);
 		if (null != list) {
@@ -258,7 +249,7 @@ public class PostingServices {
 			}
 			// status have a total order, can only move forward
 			if (newStatus < oldStatus)
-				return Response.status(Status.FORBIDDEN).build();
+				return Response.status(Status.BAD_REQUEST).entity("status can only move forward").build();
 			// update status
 			int affectedRowCount = pDao.update(p);
 			if (0 == affectedRowCount) { // update fail
