@@ -251,6 +251,7 @@ public class PostingServices {
 			if (newStatus < oldStatus)
 				return Response.status(Status.BAD_REQUEST).entity("status can only move forward").build();
 			// update status
+			p.setStatus(String.valueOf(newStatus));
 			int affectedRowCount = pDao.update(p);
 			if (0 == affectedRowCount) { // update fail
 				return Response.status(Status.INTERNAL_SERVER_ERROR).build();

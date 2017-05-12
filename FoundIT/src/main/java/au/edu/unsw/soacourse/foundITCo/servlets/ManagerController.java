@@ -5,26 +5,25 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.apache.cxf.jaxrs.client.WebClient;
-import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
 import com.j256.ormlite.dao.Dao;
 
 import au.edu.unsw.soacourse.foundITCo.DBUtil;
 import au.edu.unsw.soacourse.foundITCo.Utils;
+import au.edu.unsw.soacourse.foundITCo.Dao.PostingsDao;
 import au.edu.unsw.soacourse.foundITCo.beans.Keys;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
@@ -33,12 +32,9 @@ import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 @WebServlet("/manager")
 public class ManagerController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-
-	// TODO change ip when deploy to docker
-	private static final String JOB_URL = "http://localhost:8080/JobServices";
-	private static final String POLL_URL = "http://localhost:8080/PollingServices";
-
 	private Dao<UserPosting, String> userPostingDao = DBUtil.getUserPostingDao();
+	private Dao<User, String> userDao = DBUtil.getUserDao();
+	private PostingsDao postingsDao = new PostingsDao(Keys.SHORT_VAL_MANAGER);
 
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -61,11 +57,6 @@ public class ManagerController extends HttpServlet {
 		}
 	}
 
-	private void addKeys(WebClient client) {
-		client.header(Keys.SECURITY_KEY, Keys.SECURITY_VAL);
-		client.header(Keys.SHORT_KEY, Keys.SHORT_VAL_MANAGER);
-	}
-
 	private void gotoCreatePosting(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		request.getRequestDispatcher("manager/createPosting.jsp").forward(request, response);
@@ -74,34 +65,49 @@ public class ManagerController extends HttpServlet {
 	private void gotoManagePosting(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		User userInSession = Utils.getLoginedUser(request.getSession());
-		String userId = userInSession.getEmail();
+		String archived = request.getParameter("archived");
+		// get this user's active posting ids
+		Map<String, Object> queryParas = new HashMap<>();
+		queryParas.put("user_id", userInSession);
+		queryParas.put("archived", archived);
 		List<UserPosting> ups = null;
 		try {
-			ups = userPostingDao.queryForEq("user_id", userInSession);
+			ups = userPostingDao.queryForFieldValues(queryParas);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		// get postings from jobservices
 		List<Posting> list = new ArrayList<>();
 		if (null != ups && 0 != ups.size()) {
-			WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
+			// gather ids
+			List<String> ids = new ArrayList<>();
 			for (Iterator iterator = ups.iterator(); iterator.hasNext();) {
 				UserPosting up = (UserPosting) iterator.next();
-				client.back(true);
-				client.path("/postings/" + up.getPosting_id());
-				addKeys(client);
-				try {
-					Posting p = client.get(Posting.class);
-					Utils.trasnfromPostingStatus(p);
-					list.add(p);
-				} catch (Exception e) {
-					// TODO
-					System.out.println(" this posting id is not in the db of jobservices");
-				}
+				ids.add(up.getPosting_id());
 			}
+			// get postings from jobservices
+			list = postingsDao.findPostingById(ids);
 		}
 		request.setAttribute("list", list);
-		request.getRequestDispatcher("manager/managePosting.jsp").forward(request, response);
+		if ("0".equals(archived)) {
+			request.getRequestDispatcher("manager/managePosting.jsp").forward(request, response);
+		} else {
+			request.getRequestDispatcher("manager/manageArchived.jsp").forward(request, response);
+		}
+	}
+
+	private void gotoAssignReviewers(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		User userInSession = Utils.getLoginedUser(request.getSession());
+		// get all reviewers
+		List<User> reviewers = null;
+		try {
+			reviewers = userDao.queryForEq("userType", "hiringteam");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		System.out.println(reviewers.size());
+		request.setAttribute("reviewers", reviewers);
+		request.getRequestDispatcher("manager/assignReviewers.jsp").forward(request, response);
 	}
 
 	private void createPosting(HttpServletRequest request, HttpServletResponse response)
@@ -120,19 +126,14 @@ public class ManagerController extends HttpServlet {
 		posting.setLocation(location);
 		posting.setDescriptions(descriptions);
 		// post to job services
-		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
-		client.path("/postings");
-		client.type(MediaType.APPLICATION_JSON);
-		addKeys(client);
-		client.post(posting);
+		Response serviceResponse = postingsDao.createPosting(posting);
 		// deal with response
-		Response clientResponse = client.getResponse();
-		int httpStatus = clientResponse.getStatus();
+		int httpStatus = serviceResponse.getStatus();
 		if (201 != httpStatus) {
 			request.setAttribute("errorCode", httpStatus);
 			request.getRequestDispatcher("manager/fail.jsp").forward(request, response);
 		} else {
-			String createdURL = clientResponse.getLocation().toString();
+			String createdURL = serviceResponse.getLocation().toString();
 			String createdId = createdURL.substring(createdURL.lastIndexOf('/') + 1, createdURL.length());
 			User userInSession = Utils.getLoginedUser(request.getSession());
 			// insert into db
@@ -140,12 +141,39 @@ public class ManagerController extends HttpServlet {
 			up.setId(UUID.randomUUID().toString());
 			up.setPosting_id(createdId);
 			up.setUser(userInSession);
+			up.setArchived(0);
 			try {
 				userPostingDao.create(up);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			request.getRequestDispatcher("manager/createPosting.jsp").forward(request, response);
+			request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0").forward(request, response);
+		}
+	}
+
+	private void changeStatus(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String pid = request.getParameter("pid");
+		String newStatus = request.getParameter("newStatus");
+		Response serviceResponse = postingsDao.updateStatus(pid, newStatus);
+		int serviceStatus = serviceResponse.getStatus();
+		if (204 != serviceStatus) {
+			request.setAttribute("errorCode", serviceStatus);
+			request.getRequestDispatcher("manager/fail.jsp").forward(request, response);
+		} else {
+			RequestDispatcher dispatcher = null;
+			switch (newStatus) {
+			case "in_review": // TODO
+				dispatcher = request.getRequestDispatcher("manager?method=gotoAssignReviewers");
+				break;
+			case "sent_invitations": // TODO
+				dispatcher = request.getRequestDispatcher("manager?method=gotoSetInterviewTime");
+				break;
+			default:
+				dispatcher = request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0");
+				break;
+			}
+			dispatcher.forward(request, response);
 		}
 	}
 }
