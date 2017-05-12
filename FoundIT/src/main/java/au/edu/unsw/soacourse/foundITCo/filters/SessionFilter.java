@@ -19,7 +19,7 @@ import au.edu.unsw.soacourse.foundITCo.beans.User;
 /**
  * Servlet Filter implementation class SessionFilter
  */
-@WebFilter(urlPatterns = { "/manager", "/jobseeker", "/hiringteam" }, filterName = "sessionFilter")
+//@WebFilter(urlPatterns = { "/manager", "/jobseeker", "/hiringteam" }, filterName = "sessionFilter")
 public class SessionFilter implements Filter {
 
     /**

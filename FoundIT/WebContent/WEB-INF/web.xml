@@ -2,14 +2,6 @@
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
     <display-name>Found IT Co.</display-name>
     <welcome-file-list>
-        <welcome-file>index.jsp</welcome-file>
+        <welcome-file>manager/home_manager.jsp</welcome-file>
     </welcome-file-list>
-    <servlet>
-        <servlet-name>PostingServlet</servlet-name>
-        <servlet-class>au.edu.unsw.soacourse.foundITCo.servlets.PostingServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>PostingServlet</servlet-name>
-        <url-pattern>/posting</url-pattern>
-    </servlet-mapping>
 </web-app>
