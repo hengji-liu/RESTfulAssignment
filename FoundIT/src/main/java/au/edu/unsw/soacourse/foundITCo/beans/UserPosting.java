@@ -1,9 +1,11 @@
 package au.edu.unsw.soacourse.foundITCo.beans;
 
 import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
 
+@DatabaseTable(tableName = "userPostings")
 public class UserPosting {
-	@DatabaseField(id = true, generatedId = true)
+	@DatabaseField(id = true)
 	private String id;
 	@DatabaseField(foreign = true, canBeNull = false)
 	private User user;

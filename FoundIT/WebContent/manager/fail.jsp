@@ -7,6 +7,6 @@
 <title>Create a new job posting</title>
 </head>
 <body>
-	${errorCode}
+	http fail, error code : ${errorCode}
 </body>
 </html>
