@@ -3,9 +3,11 @@ package au.edu.unsw.soacourse.foundITCo.beans;
 import com.j256.ormlite.field.DatabaseField;
 
 public class UserProfile {
-	@DatabaseField(id = true, generatedId = true)
-	private String id;
-	@DatabaseField(foreign = true, canBeNull = false)
+	public static final String USER_ID = "user_id";
+	
+	@DatabaseField(generatedId = true)
+	private int id;
+	@DatabaseField(foreign = true, canBeNull = false, columnName = USER_ID)
 	private User user;
 	
 	@DatabaseField
@@ -19,17 +21,17 @@ public class UserProfile {
 	@DatabaseField
 	private String experience;
 	@DatabaseField
-	private String profesionalSkill;
+	private String professionalSkill;
 	
 	public UserProfile() {
 		
 	}
 
-	public String getId() {
+	public int getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 
@@ -81,12 +83,12 @@ public class UserProfile {
 		this.experience = experience;
 	}
 
-	public String getProfesionalSkill() {
-		return profesionalSkill;
+	public String getProfessionalSkill() {
+		return professionalSkill;
 	}
 
-	public void setProfesionalSkill(String profesionalSkill) {
-		this.profesionalSkill = profesionalSkill;
+	public void setProfessionalSkill(String professionalSkill) {
+		this.professionalSkill = professionalSkill;
 	}
 	
 	

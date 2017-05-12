@@ -48,6 +48,8 @@ public class LoginController extends HttpServlet {
 				Utils.deleteLoginedUser(session);
 			}
 			
+			Utils.deleteUserCookie(response);
+			
 			dipatcher = getServletContext().getRequestDispatcher("/index.jsp");
 		}
 		
@@ -69,17 +71,17 @@ public class LoginController extends HttpServlet {
 
 			user = DBUtil.getUserDao().queryForSameId(user);
 
-			DBUtil.closeConnection();
 
 			if (user != null && user.isValid()) {
 				HttpSession session = request.getSession(true);
 				Utils.storeLoginedUser(session, user);
+				Utils.storeUserCookie(response, user);
 				if (user.getUserType().equals("manager"))
 					dispatcher = getServletContext().getRequestDispatcher("/home_manager.jsp");
 				else if (user.getUserType().equals("hiringteam"))
 					dispatcher = getServletContext().getRequestDispatcher("/home_hiringteam.jsp");
 				else 
-					dispatcher = getServletContext().getRequestDispatcher("/home_jobseeker");
+					dispatcher = getServletContext().getRequestDispatcher("/home_jobseeker.jsp");
 			}
 			else {
 				dispatcher = getServletContext().getRequestDispatcher("/error.jsp");
@@ -91,6 +93,8 @@ public class LoginController extends HttpServlet {
 		catch (Throwable theException) {
 			System.out.println(theException);
 		}
+
+		DBUtil.closeConnection();
 	}
 
 }

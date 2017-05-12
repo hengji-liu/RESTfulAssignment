@@ -10,6 +10,7 @@
 
     <ul>
         <li><a href="signout">Sign out</a></li>
+        <li><a href="user?profile">Profile</a></li>
      </ul>
 
 </body>

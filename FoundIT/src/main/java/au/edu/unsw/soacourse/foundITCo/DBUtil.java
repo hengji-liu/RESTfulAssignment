@@ -17,7 +17,7 @@ public class DBUtil {
 	
 	private static ConnectionSource connectionSource;
 	private static Dao<User, String> userDao;
-	private static Dao<UserProfile, String> userProfileDao;
+	private static Dao<UserProfile, Integer> userProfileDao;
 	
 	public static Dao<User, String> getUserDao() {
 		try {
@@ -45,7 +45,7 @@ public class DBUtil {
 		return userDao;
 	}
 	
-	public static Dao<UserProfile, String> getUserProfileDao() {
+	public static Dao<UserProfile, Integer> getUserProfileDao() {
 		try {
 			connectionSource = new JdbcConnectionSource(DATABASE_URL);
 		} catch (SQLException e1) {

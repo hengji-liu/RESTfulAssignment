@@ -54,20 +54,22 @@ public class SignUpController extends HttpServlet {
 
 		try {
 			int success = DBUtil.getUserDao().create(newUser);
-
-			DBUtil.closeConnection();
 			
 			if (success > 0) {
 				response.sendRedirect("success.jsp");
 			} else {
 				out.println("Failed");
+
+				RequestDispatcher dispatcher = request.getRequestDispatcher("error_signup.jsp");
+				dispatcher.forward(request, response);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 			RequestDispatcher dispatcher = request.getRequestDispatcher("error_signup.jsp");
 			dispatcher.forward(request, response);
-			// TODO Auto-generated catch block
 		}
+
+		DBUtil.closeConnection();
 	}
 
 }
