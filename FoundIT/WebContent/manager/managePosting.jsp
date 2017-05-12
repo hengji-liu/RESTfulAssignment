@@ -8,7 +8,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset==UTF-8">
 <title>Manage current job postings</title>
 </head>
-<a href="manager?method=gotoManagePosting&archived=1">Show archived job posting</a>
+<a href="manager?method=gotoManagePosting&archived=1">Show archived
+	job posting</a>
 <body>
 	<table border="1">
 		<tr>
@@ -21,7 +22,29 @@
 				<td>${posting.companyName},${posting.positionType},
 					${posting.location }, ${posting.descriptions }</td>
 				<td>${posting.status}</td>
-				<td>a link/button should be here</td>
+				<td><c:choose>
+						<c:when test="${posting.status == 'Created'}">
+							<a
+								href="manager?method=changeStatus&newStatus=open&pid=${posting.jobId }">
+								Click to open this posting</a>
+						</c:when>
+						<c:when test="${posting.status == 'Open'}">
+							<a
+								href="manager?method=changeStatus&newStatus=in_review&pid=${posting.jobId }">
+								Click to collect candidate for this posting</a>
+						</c:when>
+						<c:when test="${posting.status == 'In review'}">
+							Please wait until reviewing is finished.
+					  </c:when>
+						<c:when test="${posting.status == 'Processed'}">
+							<a
+								href="manager?method=changeStatus&newStatus=sent_invitations&pid=${posting.jobId }">
+								Click to view short-listed candidates</a>
+						</c:when>
+						<c:otherwise>
+							<a href=""> Click to archive this posting</a>
+						</c:otherwise>
+					</c:choose></td>
 			</tr>
 		</c:forEach>
 	</table>

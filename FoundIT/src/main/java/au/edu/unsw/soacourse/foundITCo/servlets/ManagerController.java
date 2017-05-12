@@ -18,6 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 
+import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
+
 import com.j256.ormlite.dao.Dao;
 
 import au.edu.unsw.soacourse.foundITCo.DBUtil;
@@ -32,7 +34,7 @@ import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 public class ManagerController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Dao<UserPosting, String> userPostingDao = DBUtil.getUserPostingDao();
-	private PostingsDao postingsDao = new PostingsDao();
+	private PostingsDao postingsDao = new PostingsDao(Keys.SHORT_VAL_MANAGER);
 
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -83,7 +85,7 @@ public class ManagerController extends HttpServlet {
 				ids.add(up.getPosting_id());
 			}
 			// get postings from jobservices
-			list = postingsDao.findPostingById(ids, Keys.SHORT_VAL_MANAGER);
+			list = postingsDao.findPostingById(ids);
 		}
 		request.setAttribute("list", list);
 		if ("0".equals(archived)) {
@@ -109,14 +111,14 @@ public class ManagerController extends HttpServlet {
 		posting.setLocation(location);
 		posting.setDescriptions(descriptions);
 		// post to job services
-		Response clientResponse = postingsDao.createPosting(posting, Keys.SHORT_VAL_MANAGER);
+		Response serviceResponse = postingsDao.createPosting(posting);
 		// deal with response
-		int httpStatus = clientResponse.getStatus();
+		int httpStatus = serviceResponse.getStatus();
 		if (201 != httpStatus) {
 			request.setAttribute("errorCode", httpStatus);
 			request.getRequestDispatcher("manager/fail.jsp").forward(request, response);
 		} else {
-			String createdURL = clientResponse.getLocation().toString();
+			String createdURL = serviceResponse.getLocation().toString();
 			String createdId = createdURL.substring(createdURL.lastIndexOf('/') + 1, createdURL.length());
 			User userInSession = Utils.getLoginedUser(request.getSession());
 			// insert into db
@@ -130,8 +132,22 @@ public class ManagerController extends HttpServlet {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			request.getRequestDispatcher("manager/createPosting.jsp").forward(request, response);
+			request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0").forward(request, response);
 		}
 	}
 
+	private void changeStatus(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String pid = request.getParameter("pid");
+		String newStatus = request.getParameter("newStatus");
+		Response serviceResponse = postingsDao.updateStatus(pid, newStatus);
+		System.out.println(serviceResponse.getStatus());
+
+		// TODO if new status is in_review, forward to page that assign
+		// reviewers
+		// TODO if new status is sent_invitations, forward to page that make
+		// interview time
+		request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0").forward(request, response);
+
+	}
 }

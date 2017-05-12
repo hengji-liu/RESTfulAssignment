@@ -19,20 +19,27 @@ public class PostingsDao {
 
 	// TODO change ip when deploy to docker
 	private static final String JOB_URL = "http://localhost:8080/JobServices";
+	private String shortKey;
 
-	private void addKeys(WebClient client, String shortKey) {
+
+	public PostingsDao(String shortKey) {
+		super();
+		this.shortKey = shortKey;
+	}
+
+	private void addKeys(WebClient client) {
 		client.header(Keys.SECURITY_KEY, Keys.SECURITY_VAL);
 		client.header(Keys.SHORT_KEY, shortKey);
 	}
 
-	public List<Posting> findPostingById(List<String> ids, String shortKey) {
+	public List<Posting> findPostingById(List<String> ids) {
 		List<Posting> list = new ArrayList<>();
 		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
 		for (Iterator<String> iterator = ids.iterator(); iterator.hasNext();) {
 			String id = (String) iterator.next();
 			client.back(true);
 			client.path("/postings/" + id);
-			addKeys(client, shortKey);
+			addKeys(client);
 			try {
 				Posting p = client.get(Posting.class);
 				Utils.trasnfromPostingStatus(p);
@@ -45,13 +52,22 @@ public class PostingsDao {
 		return list;
 	}
 
-	public Response createPosting(Posting posting, String shortKey){
+	public Response createPosting(Posting posting){
 		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
 		client.path("/postings");
 		client.type(MediaType.APPLICATION_JSON);
-		addKeys(client, shortKey);
+		addKeys(client);
 		client.post(posting);
-		Response clientResponse = client.getResponse();
-		return clientResponse;
+		Response serviceResponse = client.getResponse();
+		return serviceResponse;
+	}
+
+	public Response updateStatus(String pid, String newStatus){
+		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
+		client.path("/postings/" +newStatus+"/"+pid);
+		addKeys(client);
+		client.put(null);
+		Response serviceResponse = client.getResponse();
+		return serviceResponse;
 	}
 }
