@@ -11,29 +11,43 @@ public class UserPosting {
 	private User user;
 	@DatabaseField
 	private String posting_id;
-	
+	@DatabaseField
+	private int archived; // 0 is not, 1 is archived
+
 	public UserPosting() {
-		
+
 	}
-	
+
 	public String getId() {
 		return id;
 	}
+
 	public void setId(String id) {
 		this.id = id;
 	}
+
 	public User getUser() {
 		return user;
 	}
+
 	public void setUser(User user) {
 		this.user = user;
 	}
+
 	public String getPosting_id() {
 		return posting_id;
 	}
+
 	public void setPosting_id(String posting_id) {
 		this.posting_id = posting_id;
 	}
 
-	
+	public int getArchived() {
+		return archived;
+	}
+
+	public void setArchived(int archived) {
+		this.archived = archived;
+	}
+
 }

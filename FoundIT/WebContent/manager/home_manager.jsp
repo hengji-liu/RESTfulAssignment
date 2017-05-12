@@ -11,7 +11,7 @@
     <ul>
         <li><a href="signout">Sign out</a></li>
         <li><a href="manager?method=gotoCreatePosting">Create a new job posting</a></li>
-        <li><a href="manager?method=gotoManagePosting">Manager current job postings</a></li>
+        <li><a href="manager?method=gotoManagePosting&archived=0">Manager my job postings</a></li>
      </ul>
 
 	

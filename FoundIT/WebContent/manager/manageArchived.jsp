@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset==UTF-8">
 <title>Manage current job postings</title>
 </head>
-<a href="manager?method=gotoManagePosting&archived=1">Show archived job posting</a>
+<a href="manager?method=gotoManagePosting&archived=0">Show active job posting</a>
 <body>
 	<table border="1">
 		<tr>
