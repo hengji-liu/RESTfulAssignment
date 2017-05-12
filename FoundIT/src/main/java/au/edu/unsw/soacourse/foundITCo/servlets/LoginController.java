@@ -75,7 +75,7 @@ public class LoginController extends HttpServlet {
 				HttpSession session = request.getSession(true);
 				Utils.storeLoginedUser(session, user);
 				if (user.getUserType().equals("manager"))
-					dispatcher = getServletContext().getRequestDispatcher("/home_manager.jsp");
+					dispatcher = getServletContext().getRequestDispatcher("/manager/home_manager.jsp");
 				else if (user.getUserType().equals("hiringteam"))
 					dispatcher = getServletContext().getRequestDispatcher("/home_hiringteam.jsp");
 				else 
