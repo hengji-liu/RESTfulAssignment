@@ -11,14 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
-
-import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
 
 import com.j256.ormlite.dao.Dao;
 
@@ -34,6 +33,7 @@ import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 public class ManagerController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Dao<UserPosting, String> userPostingDao = DBUtil.getUserPostingDao();
+	private Dao<User, String> userDao = DBUtil.getUserDao();
 	private PostingsDao postingsDao = new PostingsDao(Keys.SHORT_VAL_MANAGER);
 
 	protected void service(HttpServletRequest request, HttpServletResponse response)
@@ -95,6 +95,21 @@ public class ManagerController extends HttpServlet {
 		}
 	}
 
+	private void gotoAssignReviewers(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		User userInSession = Utils.getLoginedUser(request.getSession());
+		// get all reviewers
+		List<User> reviewers = null;
+		try {
+			reviewers = userDao.queryForEq("userType", "hiringteam");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		System.out.println(reviewers.size());
+		request.setAttribute("reviewers", reviewers);
+		request.getRequestDispatcher("manager/assignReviewers.jsp").forward(request, response);
+	}
+
 	private void createPosting(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		// get paras
@@ -141,13 +156,24 @@ public class ManagerController extends HttpServlet {
 		String pid = request.getParameter("pid");
 		String newStatus = request.getParameter("newStatus");
 		Response serviceResponse = postingsDao.updateStatus(pid, newStatus);
-		System.out.println(serviceResponse.getStatus());
-
-		// TODO if new status is in_review, forward to page that assign
-		// reviewers
-		// TODO if new status is sent_invitations, forward to page that make
-		// interview time
-		request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0").forward(request, response);
-
+		int serviceStatus = serviceResponse.getStatus();
+		if (204 != serviceStatus) {
+			request.setAttribute("errorCode", serviceStatus);
+			request.getRequestDispatcher("manager/fail.jsp").forward(request, response);
+		} else {
+			RequestDispatcher dispatcher = null;
+			switch (newStatus) {
+			case "in_review": // TODO
+				dispatcher = request.getRequestDispatcher("manager?method=gotoAssignReviewers");
+				break;
+			case "sent_invitations": // TODO
+				dispatcher = request.getRequestDispatcher("manager?method=gotoSetInterviewTime");
+				break;
+			default:
+				dispatcher = request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0");
+				break;
+			}
+			dispatcher.forward(request, response);
+		}
 	}
 }
