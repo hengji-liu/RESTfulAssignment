@@ -17,7 +17,6 @@ import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 
-
 public class PostingServlet extends HttpServlet {
 	/**
 	 * 
@@ -93,10 +92,19 @@ public class PostingServlet extends HttpServlet {
 		WebClient client = WebClient.create(REST_URI, Arrays.asList(new JacksonJsonProvider()));
 		client.path("/postings/" + id);
 		client.accept(MediaType.APPLICATION_JSON);
-		Posting p = client.get(Posting.class);
-		// to display page
-		request.setAttribute("posting", p);
-		request.getRequestDispatcher("test2.jsp").forward(request, response);
+		client.header("Security-Keys", "i-am-foundit");
+		client.header("Short-Keys", "app-manager");
+		Posting p;
+		try {
+			p = client.get(Posting.class);
+			System.out.println(p.getDescriptions());
+			// to display page
+			request.setAttribute("posting", p);
+			request.getRequestDispatcher("test2.jsp").forward(request, response);
+		} catch (Exception e) {
+			e.printStackTrace();
+			// TODO go to error page
+		}
 	}
 
 	private void find(HttpServletRequest request, HttpServletResponse response) {

@@ -5,6 +5,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import au.edu.unsw.soacourse.foundITCo.beans.Posting;
+import au.edu.unsw.soacourse.foundITCo.beans.PostingStatus;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
 
 public class Utils {
@@ -57,4 +59,27 @@ public class Utils {
 		cookieUserName.setMaxAge(0);
 		response.addCookie(cookieUserName);
 	}
+
+	public static void trasnfromPostingStatus(Posting p) {
+		switch (Integer.parseInt(p.getStatus())) {
+		case PostingStatus.CREATED:
+			p.setStatus("Created");
+			break;
+		case PostingStatus.OPEN:
+			p.setStatus("Open");
+			break;
+		case PostingStatus.IN_REVIEW:
+			p.setStatus("In review");
+			break;
+		case PostingStatus.PROCESSED:
+			p.setStatus("Processed");
+			break;
+		case PostingStatus.SENT_INVITATIONS:
+			p.setStatus("Sent Invitations");
+			break;
+		default:
+			break;
+		}
+	}
+
 }
