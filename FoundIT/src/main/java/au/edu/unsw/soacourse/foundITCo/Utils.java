@@ -5,6 +5,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import au.edu.unsw.soacourse.foundITCo.beans.Application;
+import au.edu.unsw.soacourse.foundITCo.beans.ApplicationStatus;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.PostingStatus;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
@@ -78,6 +80,25 @@ public class Utils {
 			break;
 		case PostingStatus.SENT_INVITATIONS:
 			p.setStatus("Sent Invitations");
+			break;
+		default:
+			break;
+		}
+	}
+
+	public static void trasnfromApplicationStatus(Application a) {
+		switch (Integer.parseInt(a.getStatus())) {
+		case ApplicationStatus.RECEIVED:
+			a.setStatus("Received");
+			break;
+		case ApplicationStatus.IN_REVIEW:
+			a.setStatus("In review");
+			break;
+		case ApplicationStatus.ACCEPTED:
+			a.setStatus("Accepted");
+			break;
+		case ApplicationStatus.REJECTED:
+			a.setStatus("Rejected");
 			break;
 		default:
 			break;

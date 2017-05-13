@@ -10,7 +10,7 @@
 
 	<ul>
 		<li><a href="signout">Sign out</a></li>
-		<li><a href="">Manage my applications</a>
+		<li><a href="jobseeker?method=gotoManageApplication&archived=0">Manage my applications</a>
 	</ul>
 
 	<form action="jobseeker?method=search" method="post">

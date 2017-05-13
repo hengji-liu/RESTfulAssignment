@@ -12,8 +12,10 @@ import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.tomcat.util.descriptor.web.ApplicationParameter;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
+import au.edu.unsw.soacourse.foundITCo.Utils;
 import au.edu.unsw.soacourse.foundITCo.beans.Application;
 import au.edu.unsw.soacourse.foundITCo.beans.Keys;
+import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 
 public class ApplicationsDao {
 
@@ -44,26 +46,21 @@ public class ApplicationsDao {
 		return list;
 	}
 
-	// public List<Posting> findPostingById(List<String> ids) {
-	// List<Posting> list = new ArrayList<>();
-	// WebClient client = WebClient.create(JOB_URL, Arrays.asList(new
-	// JacksonJsonProvider()));
-	// for (Iterator<String> iterator = ids.iterator(); iterator.hasNext();) {
-	// String id = (String) iterator.next();
-	// client.back(true);
-	// client.path("/postings/" + id);
-	// addKeys(client);
-	// try {
-	// Posting p = client.get(Posting.class);
-	// Utils.trasnfromPostingStatus(p);
-	// list.add(p);
-	// } catch (Exception e) {
-	// // TODO
-	// System.out.println(" this posting id is not in the db of jobservices");
-	// }
-	// }
-	// return list;
-	// }
+	public Application findApplicationById(String id) {
+		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
+		client.back(true);
+		client.path("/applications/" + id);
+		addKeys(client);
+		try {
+			Application a = client.get(Application.class);
+			Utils.trasnfromApplicationStatus(a);
+			return a;
+		} catch (Exception e) {
+			// TODO
+			System.out.println(" this application id is not in the db of jobservices");
+		}
+		return null;
+	}
 
 	public Response createApplication(Application application) {
 		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));

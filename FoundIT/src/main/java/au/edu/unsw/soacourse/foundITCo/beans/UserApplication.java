@@ -9,9 +9,19 @@ public class UserApplication {
 	private User user;
 	@DatabaseField
 	private String application_id;
+	@DatabaseField
+	private int archived; // 0 is not, 1 is archived
+
+	public int getArchived() {
+		return archived;
+	}
+
+	public void setArchived(int archived) {
+		this.archived = archived;
+	}
 
 	public UserApplication() {
-		
+
 	}
 
 	public String getId() {
@@ -37,6 +47,5 @@ public class UserApplication {
 	public void setApplication_id(String application_id) {
 		this.application_id = application_id;
 	}
-	
-	
+
 }

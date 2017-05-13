@@ -8,37 +8,31 @@
 <meta http-equiv="Content-Type" content="text/html; charset==UTF-8">
 <title>Manage current job postings</title>
 </head>
-<a href="manager?method=gotoManagePosting&archived=1">Show archived
-	job posting</a>
+<a href="jobseeker?method=gotoManageApplication&archived=1">Show archived job posting</a>
+
 <body>
 	<table border="1">
 		<tr>
-			<th>Job posting information</th>
-			<th>Job posting status</th>
+			<th>Jobs I applied for</th>
+			<th>Application status</th>
 			<th>Action</th>
 		</tr>
-		<c:forEach var="posting" items="${list}">
+		<c:forEach var="application" items="${list}">
             <tr>
-				<td>${posting.companyName},${posting.positionType},
-					${posting.location }, ${posting.descriptions }</td>
-				<td>${posting.status}</td>
+				<td>${application.jobId}</td>
+				<td>${application.status}</td>
 				<td><c:choose>
-						<c:when test="${posting.status == 'Created'}">
+						<c:when test="${application.status == 'Received'}">
 							<a
-								href="manager?method=changeStatus&newStatus=open&pid=${posting.jobId }">
-								Click to open this posting</a>
+								href="jobseeker?method=updateApplication&aid=${application.appId }">
+								Click to update application</a>
 						</c:when>
-						<c:when test="${posting.status == 'Open'}">
-							<a
-								href="manager?method=gotoAssignReviewers&pid=${posting.jobId }">
-								Click to collect candidate and assign reviewers for this posting</a>
-						</c:when>
-						<c:when test="${posting.status == 'In review'}">
+						<c:when test="${application.status == 'In review'}">
 							Please wait until reviewing is finished.
 					  </c:when>
-						<c:when test="${posting.status == 'Processed'}">
+						<c:when test="${posting.status == 'Accepted'}">
 							<a
-								href="manager?method=gotoCreateInterviewPoll&pid=${posting.jobId}">
+								href="jobseeker?method=gotoInterviewPoll&aid=${application.jobId}">
 								Click to view short-listed candidates</a>
 						</c:when>
 						<c:otherwise>
