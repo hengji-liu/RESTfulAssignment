@@ -3,7 +3,7 @@ package au.edu.unsw.soacourse.foundITCo.beans;
 import com.j256.ormlite.field.DatabaseField;
 
 public class UserApplication {
-	@DatabaseField(id = true, generatedId = true)
+	@DatabaseField(generatedId = true)
 	private String id;
 	@DatabaseField(foreign = true, canBeNull = false)
 	private User user;
