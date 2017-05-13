@@ -1,9 +1,6 @@
 package au.edu.unsw.soacourse.foundITCo.Dao;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;

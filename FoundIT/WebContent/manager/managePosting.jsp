@@ -38,7 +38,7 @@
 					  </c:when>
 						<c:when test="${posting.status == 'Processed'}">
 							<a
-								href="manager?method=changeStatus&newStatus=sent_invitations&pid=${posting.jobId }">
+								href="manager?method=gotoCreateInterviewPoll&pid=${posting.jobId}">
 								Click to view short-listed candidates</a>
 						</c:when>
 						<c:otherwise>

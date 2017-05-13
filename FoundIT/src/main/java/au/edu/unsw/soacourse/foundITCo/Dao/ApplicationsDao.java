@@ -10,10 +10,8 @@ import javax.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
-import au.edu.unsw.soacourse.foundITCo.Utils;
 import au.edu.unsw.soacourse.foundITCo.beans.Application;
 import au.edu.unsw.soacourse.foundITCo.beans.Keys;
-import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 
 public class ApplicationsDao {
 
