@@ -4,7 +4,7 @@ import com.j256.ormlite.field.DatabaseField;
 
 public class UserApplication {
 	@DatabaseField(generatedId = true)
-	private String id;
+	private int id;
 	@DatabaseField(foreign = true, canBeNull = false)
 	private User user;
 	@DatabaseField
@@ -14,11 +14,11 @@ public class UserApplication {
 		
 	}
 
-	public String getId() {
+	public int getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 

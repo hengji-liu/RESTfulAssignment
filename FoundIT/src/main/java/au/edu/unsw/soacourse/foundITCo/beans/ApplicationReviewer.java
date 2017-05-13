@@ -4,13 +4,14 @@ import com.j256.ormlite.field.DatabaseField;
 
 public class ApplicationReviewer {
 	public static final String USER_ID = "user_id";
+	public static final String APPLICATION_ID = "application_id";
 	
 	@DatabaseField(generatedId = true)
-	private String id;
+	private int id;
 	
-	@DatabaseField(id =true, foreign = true, columnName = USER_ID)
+	@DatabaseField(foreign = true, columnName = USER_ID)
 	private User reviewer;
-	@DatabaseField(id =true, foreign = true)
+	@DatabaseField(foreign = true, columnName = APPLICATION_ID)
 	private UserApplication userApplication;
 	
 	public ApplicationReviewer() {
@@ -18,13 +19,13 @@ public class ApplicationReviewer {
 	}
 	
 
-	public String getId() {
+	public int getId() {
 		return id;
 	}
 
 
 
-	public void setId(String id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 

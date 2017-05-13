@@ -18,39 +18,31 @@ import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 
 public class ApplicationDao {
 
-    // TODO change ip when deploy to docker
-    private static final String JOB_URL = "http://localhost:8080/JobServices";
-    private String shortKey;
+	private static WebClient client;
 
-
-    public ApplicationDao(String shortKey) {
-        super();
-        this.shortKey = shortKey;
-    }
-
-    private void addKeys(WebClient client) {
+    private static void addKeys(WebClient client, String shortKey) {
         client.header(Keys.SECURITY_KEY, Keys.SECURITY_VAL);
         client.header(Keys.SHORT_KEY, shortKey);
     }
 
-    public List<Application> findPostingById(List<String> ids) {
-        List<Application> list = new ArrayList<>();
-        WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
+    public static List<Application> findApplicationsById(String baseUri, String shortKey, List<String> ids) {
+        List<Application> applications = new ArrayList<>();
+        client = WebClient.create(baseUri, Arrays.asList(new JacksonJsonProvider()));
         for (Iterator<String> iterator = ids.iterator(); iterator.hasNext();) {
             String id = (String) iterator.next();
             client.back(true);
             client.path("/applications/" + id);
-            addKeys(client);
+            addKeys(client, shortKey);
             try {
                 Application a = client.get(Application.class);
                 Utils.trasnfromApplicationStatus(a);
-                list.add(a);
+                applications.add(a);
             } catch (Exception e) {
                 // TODO
                 System.out.println(" this posting id is not in the db of jobservices");
             }
         }
-        return list;
+        return applications;
     }
 
 //    public Response createPosting(Posting posting){

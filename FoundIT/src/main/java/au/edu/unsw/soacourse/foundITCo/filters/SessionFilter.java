@@ -1,6 +1,7 @@
 package au.edu.unsw.soacourse.foundITCo.filters;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import au.edu.unsw.soacourse.foundITCo.DBUtil;
 import au.edu.unsw.soacourse.foundITCo.Utils;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
 
@@ -21,6 +23,7 @@ import au.edu.unsw.soacourse.foundITCo.beans.User;
  */
 @WebFilter(urlPatterns = { "/manager", "/jobseeker", "/hiringteam" }, filterName = "sessionFilter")
 public class SessionFilter implements Filter {
+	private static final String HIRING_TEAM_REQUEST_URI = "/FoundITCo/hiringteam";
 
     /**
      * Default constructor. 
@@ -47,19 +50,16 @@ public class SessionFilter implements Filter {
 		
 		User userInSession = Utils.getLoginedUser(session);
 		
-		String requestPath = req.getRequestURI();
-
-		if (userInSession != null) {
-			session.setAttribute("COOKIE_CHECKED", "CHECKED");
-			chain.doFilter(request, response);
-			return;
-		} 
-		else {
-			res.sendRedirect("signin.jsp");
-			return;   
+		if (userInSession == null) {
+			try {
+				userInSession = DBUtil.getUserDao().queryForId(Utils.getUserNameInCookie(req));
+				Utils.storeLoginedUser(session, userInSession);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-	 
-	       // Flag check cookie
+		
 //	       String checked = (String) session.getAttribute("COOKIE_CHECKED");
 //	       if (checked == null && conn != null) {
 //	           String userName = MyUtils.getUserNameInCookie(req);
@@ -73,6 +73,24 @@ public class SessionFilter implements Filter {
 //	           // Mark checked.
 //	           session.setAttribute("COOKIE_CHECKED", "CHECKED");
 //	       }
+
+		if (userInSession != null) {
+			session.setAttribute("COOKIE_CHECKED", "CHECKED");
+			if (req.getRequestURI().equalsIgnoreCase(HIRING_TEAM_REQUEST_URI)) {
+				if (userInSession.getUserType().equals("hiringteam")) {
+					chain.doFilter(request, response);
+				} else {
+					res.sendError(HttpServletResponse.SC_NOT_FOUND);
+				}
+			} else {
+				chain.doFilter(request, response);
+			}
+			return;
+		} 
+		else {
+			res.sendRedirect("signin.jsp");
+			return;   
+		}
 	 
 	}
 	

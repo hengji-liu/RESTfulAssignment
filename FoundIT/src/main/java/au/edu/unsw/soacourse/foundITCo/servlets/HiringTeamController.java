@@ -2,6 +2,7 @@ package au.edu.unsw.soacourse.foundITCo.servlets;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -25,6 +26,7 @@ import au.edu.unsw.soacourse.foundITCo.beans.ApplicationReviewer;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
 import au.edu.unsw.soacourse.foundITCo.beans.UserProfile;
+import au.edu.unsw.soacourse.foundITCo.dao.ApplicationDao;
 
 /**
  * Servlet implementation class HiringTeamController
@@ -60,20 +62,27 @@ public class HiringTeamController extends HttpServlet {
 				}
 			}
 			
-			List<Application> applications;
+			List<Application> applications = null;
 			request.setAttribute("applications", null);
+			
+			String baseUri = request.getScheme() + "://" +   // "http" + "://
+		             request.getServerName() +       // "myhost"
+		             ":" +                           // ":"
+		             request.getServerPort();
 			
 			try {
 				List<ApplicationReviewer> applicationReviews = DBUtil.getApplicationReviewerDao().queryBuilder().where().eq(ApplicationReviewer.USER_ID, user.getEmail()).query();
 				if (applicationReviews.size() > 0) {
-					for (Iterator applicationReview = applicationReviews.iterator(); applicationReview
+					List<String> ids = new ArrayList<String>();
+					for (Iterator<ApplicationReviewer> applicationReview = applicationReviews.iterator(); applicationReview
 							.hasNext();) {
 						ApplicationReviewer applicationReviewer = (ApplicationReviewer) applicationReview
 								.next();
-						
+						ids.add(applicationReviewer.getUserApplication().getApplication_id());
 					}
+					applications = ApplicationDao.findApplicationsById(baseUri, "app-reviewer", ids);
 				}
-
+				request.setAttribute("applications", applications);
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 //				e.printStackTrace();
