@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 import au.edu.unsw.soacourse.foundITCo.beans.User;
+import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
 import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 import au.edu.unsw.soacourse.foundITCo.beans.UserProfile;
 
@@ -20,7 +21,34 @@ public class DBUtil {
 	private static ConnectionSource connectionSource;
 	private static Dao<User, String> userDao;
 	private static Dao<UserProfile, String> userProfileDao;
-	private static Dao<UserPosting, String> UserPostingDao;
+	private static Dao<UserPosting, String> userPostingDao;
+	private static Dao<UserApplication, String> userApplicationDao;
+
+	public static Dao<UserApplication, String> getUserApplicationDao() {
+		try {
+			connectionSource = new JdbcConnectionSource(DATABASE_URL);
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		if (userApplicationDao == null) {
+			try {
+
+				userApplicationDao = DaoManager.createDao(connectionSource, UserApplication.class);
+				if (!userApplicationDao.isTableExists()) {
+					TableUtils.createTable(connectionSource, UserApplication.class);
+				}
+				// else {
+				// TableUtils.dropTable(connectionSource, User.class, true);
+				// }
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return userApplicationDao;
+	}
 
 	public static Dao<UserPosting, String> getUserPostingDao() {
 		try {
@@ -30,11 +58,11 @@ public class DBUtil {
 			e1.printStackTrace();
 		}
 
-		if (UserPostingDao == null) {
+		if (userPostingDao == null) {
 			try {
 
-				UserPostingDao = DaoManager.createDao(connectionSource, UserPosting.class);
-				if (!UserPostingDao.isTableExists()) {
+				userPostingDao = DaoManager.createDao(connectionSource, UserPosting.class);
+				if (!userPostingDao.isTableExists()) {
 					TableUtils.createTable(connectionSource, UserPosting.class);
 				}
 				// else {
@@ -45,7 +73,7 @@ public class DBUtil {
 				e.printStackTrace();
 			}
 		}
-		return UserPostingDao;
+		return userPostingDao;
 	}
 
 	public static Dao<User, String> getUserDao() {

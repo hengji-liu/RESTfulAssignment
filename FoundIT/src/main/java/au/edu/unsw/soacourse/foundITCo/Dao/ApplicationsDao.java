@@ -5,9 +5,11 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.tomcat.util.descriptor.web.ApplicationParameter;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
 import au.edu.unsw.soacourse.foundITCo.beans.Application;
@@ -63,16 +65,15 @@ public class ApplicationsDao {
 	// return list;
 	// }
 
-	// public Response createPosting(Posting posting){
-	// WebClient client = WebClient.create(JOB_URL, Arrays.asList(new
-	// JacksonJsonProvider()));
-	// client.path("/postings");
-	// client.type(MediaType.APPLICATION_JSON);
-	// addKeys(client);
-	// client.post(posting);
-	// Response serviceResponse = client.getResponse();
-	// return serviceResponse;
-	// }
+	public Response createApplication(Application application) {
+		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
+		client.path("/applications");
+		client.type(MediaType.APPLICATION_JSON);
+		addKeys(client);
+		client.post(application);
+		Response serviceResponse = client.getResponse();
+		return serviceResponse;
+	}
 
 	public Response updateStatus(String aid, String newStatus) {
 		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));

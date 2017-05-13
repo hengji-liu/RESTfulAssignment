@@ -136,7 +136,7 @@ public class ManagerController extends HttpServlet {
 		int httpStatus = serviceResponse.getStatus();
 		if (201 != httpStatus) {
 			request.setAttribute("errorCode", httpStatus);
-			request.getRequestDispatcher("manager/fail.jsp").forward(request, response);
+			request.getRequestDispatcher("fail.jsp").forward(request, response);
 		} else {
 			String createdURL = serviceResponse.getLocation().toString();
 			String createdId = createdURL.substring(createdURL.lastIndexOf('/') + 1, createdURL.length());
@@ -164,7 +164,7 @@ public class ManagerController extends HttpServlet {
 		int serviceStatus = serviceResponse.getStatus();
 		if (204 != serviceStatus) {
 			request.setAttribute("errorCode", serviceStatus);
-			request.getRequestDispatcher("manager/fail.jsp").forward(request, response);
+			request.getRequestDispatcher("fail.jsp").forward(request, response);
 		} else {
 			switch (newStatus) {
 			case "in_review":

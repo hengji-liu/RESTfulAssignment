@@ -16,8 +16,8 @@
 		</tr>
 		<c:forEach var="posting" items="${list}">
             <tr>
-				<td>${posting.companyName},${posting.positionType},
-					${posting.location }, ${posting.descriptions }</td>
+				<td><a href="jobseeker?method=gotoPostingDetails&id=${posting.jobId}">${posting.companyName},${posting.positionType},
+					${posting.location }, ${posting.descriptions }</a></td>
 				<td>${posting.status}</td>
 			</tr>
 		</c:forEach>
