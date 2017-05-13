@@ -28,6 +28,7 @@ import au.edu.unsw.soacourse.foundITCo.beans.Application;
 import au.edu.unsw.soacourse.foundITCo.beans.Keys;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
+import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
 import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 
 @WebServlet("/manager")
@@ -112,7 +113,7 @@ public class ManagerController extends HttpServlet {
 
 	private void gotoCreateInterviewPoll(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		//TODO
+		// TODO
 	}
 
 	private void createPosting(HttpServletRequest request, HttpServletResponse response)
@@ -201,4 +202,25 @@ public class ManagerController extends HttpServlet {
 			request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0").forward(request, response);
 		}
 	}
+
+	private void archive(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String pid = request.getParameter("pid");
+		User userInSession = Utils.getLoginedUser(request.getSession());
+		UserPosting up = new UserPosting();
+		up.setUser(userInSession);
+		up.setPosting_id(pid);
+		try {
+			List<UserPosting> result = userPostingDao.queryForMatching(up);
+			UserPosting resultUp = result.get(0);
+			resultUp.setArchived(1);
+			userPostingDao.update(resultUp);
+			request.getRequestDispatcher("manager?method=gotoManagePosting&archived=1").forward(request,
+					response);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+	}
+
 }

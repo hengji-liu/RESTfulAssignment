@@ -8,7 +8,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset==UTF-8">
 <title>Manage current job postings</title>
 </head>
-<a href="jobseeker?method=gotoManageApplication&archived=1">Show archived job posting</a>
+<a href="jobseeker?method=gotoManageApplication&archived=1">Show
+	archived job posting</a>
 
 <body>
 	<table border="1">
@@ -32,11 +33,12 @@
 					  </c:when>
 						<c:when test="${posting.status == 'Accepted'}">
 							<a
-								href="jobseeker?method=gotoInterviewPoll&aid=${application.jobId}">
-								Click to view short-listed candidates</a>
+								href="jobseeker?method=gotoInterviewPoll&aid=${application.appId}">
+								Click to choose an interview time</a>
 						</c:when>
 						<c:otherwise>
-							<a href=""> Click to archive this posting</a>
+							<a href="jobseeker?method=archive&aid=${application.appId}">
+								Click to archive this application</a>
 						</c:otherwise>
 					</c:choose></td>
 			</tr>

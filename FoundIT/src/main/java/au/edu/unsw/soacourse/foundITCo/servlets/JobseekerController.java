@@ -179,7 +179,6 @@ public class JobseekerController extends HttpServlet {
 	private void gotoUpdateApplication(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		String aid = request.getParameter("aid");
-		User userInSession = Utils.getLoginedUser(request.getSession());
 		Application app = applicationsDao.findApplicationById(aid);
 		request.setAttribute("application", app);
 		request.getRequestDispatcher("jobseeker/updateApplication.jsp").forward(request, response);
@@ -206,4 +205,25 @@ public class JobseekerController extends HttpServlet {
 		}
 
 	}
+
+	private void archive(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String aid = request.getParameter("id");
+		User userInSession = Utils.getLoginedUser(request.getSession());
+		UserApplication ua = new UserApplication();
+		ua.setUser(userInSession);
+		ua.setApplication_id(aid);
+		try {
+			List<UserApplication> result = userApplicationDao.queryForMatching(ua);
+			UserApplication resultUa = result.get(0);
+			resultUa.setArchived(1);
+			userApplicationDao.update(resultUa);
+			request.getRequestDispatcher("jobseeker?method=gotoManageApplication&archived=1").forward(request,
+					response);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+	}
+
 }
