@@ -11,15 +11,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
-
-import org.w3c.dom.ls.LSInput;
 
 import com.j256.ormlite.dao.Dao;
 
@@ -31,7 +28,6 @@ import au.edu.unsw.soacourse.foundITCo.beans.Application;
 import au.edu.unsw.soacourse.foundITCo.beans.Keys;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
-import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
 import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 
 @WebServlet("/manager")
@@ -114,6 +110,11 @@ public class ManagerController extends HttpServlet {
 		request.getRequestDispatcher("manager/assignReviewers.jsp").forward(request, response);
 	}
 
+	private void gotoCreateInterviewPoll(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		//TODO
+	}
+
 	private void createPosting(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		// get paras
@@ -135,7 +136,7 @@ public class ManagerController extends HttpServlet {
 		int httpStatus = serviceResponse.getStatus();
 		if (201 != httpStatus) {
 			request.setAttribute("errorCode", httpStatus);
-			request.getRequestDispatcher("manager/fail.jsp").forward(request, response);
+			request.getRequestDispatcher("fail.jsp").forward(request, response);
 		} else {
 			String createdURL = serviceResponse.getLocation().toString();
 			String createdId = createdURL.substring(createdURL.lastIndexOf('/') + 1, createdURL.length());
@@ -163,9 +164,8 @@ public class ManagerController extends HttpServlet {
 		int serviceStatus = serviceResponse.getStatus();
 		if (204 != serviceStatus) {
 			request.setAttribute("errorCode", serviceStatus);
-			request.getRequestDispatcher("manager/fail.jsp").forward(request, response);
+			request.getRequestDispatcher("fail.jsp").forward(request, response);
 		} else {
-			RequestDispatcher dispatcher = null;
 			switch (newStatus) {
 			case "in_review":
 				// save userPosting relationship for reviewers
@@ -192,16 +192,13 @@ public class ManagerController extends HttpServlet {
 					Application application = (Application) iterator.next();
 					applicationsDao.updateStatus(application.getAppId(), newStatus);
 				}
-				dispatcher = request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0");
 				break;
 			case "sent_invitations": // TODO
-				dispatcher = request.getRequestDispatcher("manager?method=gotoSetInterviewTime");
 				break;
 			default:
-				dispatcher = request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0");
 				break;
 			}
-			dispatcher.forward(request, response);
+			request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0").forward(request, response);
 		}
 	}
 }

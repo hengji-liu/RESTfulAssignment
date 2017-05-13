@@ -65,4 +65,18 @@ public class PostingsDao {
 		Response serviceResponse = client.getResponse();
 		return serviceResponse;
 	}
+
+	public List<Posting> search(String keyword, String status) {
+		List<Posting> list = new ArrayList<>();
+		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
+		client.path("/postings").query("keyword", keyword).query("status", status);
+		addKeys(client);
+		list = (List<Posting>) client.getCollection(Posting.class);
+		for (Iterator iterator = list.iterator(); iterator.hasNext();) {
+			Posting posting = (Posting) iterator.next();
+			Utils.trasnfromPostingStatus(posting);
+		}
+		return list;
+	}
+
 }
