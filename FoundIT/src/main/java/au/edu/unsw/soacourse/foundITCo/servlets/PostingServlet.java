@@ -92,8 +92,8 @@ public class PostingServlet extends HttpServlet {
 		WebClient client = WebClient.create(REST_URI, Arrays.asList(new JacksonJsonProvider()));
 		client.path("/postings/" + id);
 		client.accept(MediaType.APPLICATION_JSON);
-		client.header("Security-Keys", "i-am-foundit");
-		client.header("Short-Keys", "app-manager");
+		client.header("Security-Key", "i-am-foundit");
+		client.header("Short-Key", "app-manager");
 		Posting p;
 		try {
 			p = client.get(Posting.class);

@@ -17,6 +17,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import au.edu.unsw.soacourse.jobs.auth.Roles;
+import au.edu.unsw.soacourse.jobs.auth.RolesAllowed;
+import au.edu.unsw.soacourse.jobs.auth.SecuredByKey;
 import au.edu.unsw.soacourse.jobs.dao.ApplicationsDao;
 import au.edu.unsw.soacourse.jobs.dao.PostingsDao;
 import au.edu.unsw.soacourse.jobs.model.Application;
@@ -24,6 +27,7 @@ import au.edu.unsw.soacourse.jobs.model.ApplicationStatus;
 import au.edu.unsw.soacourse.jobs.model.Posting;
 import au.edu.unsw.soacourse.jobs.model.PostingStatus;
 
+@SecuredByKey
 public class ApplicationServices {
 	private ApplicationsDao aDao = new ApplicationsDao();
 	private PostingsDao pDao = new PostingsDao();
@@ -31,17 +35,12 @@ public class ApplicationServices {
 	@GET
 	@Path("/applications/{appId}")
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response get(@HeaderParam("accept") String type, @PathParam("appId") String appId) {
 		// validation, appId should be an int
 		try {
 			Integer.parseInt(appId);
 		} catch (NumberFormatException e) {
-			return Response.status(Status.BAD_REQUEST).build();
-		}
-		// validation media type
-		if (!type.equals(MediaType.WILDCARD) //
-				&& !type.equals(MediaType.APPLICATION_JSON) //
-				&& !type.equals(MediaType.APPLICATION_XML)) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// get item
@@ -58,12 +57,8 @@ public class ApplicationServices {
 	@GET
 	@Path("/applications")
 	@Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response getAllApps(@HeaderParam("accept") String type) {
-		// validation media type
-		if (!type.equals(MediaType.WILDCARD) //
-				&& !type.equals(MediaType.APPLICATION_JSON)) {
-			return Response.status(Status.BAD_REQUEST).build();
-		}
 		List<Application> list = aDao.findAll();
 		if (null != list) {
 			return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
@@ -75,12 +70,8 @@ public class ApplicationServices {
 	@GET
 	@Path("/postings/{jobId}/applications")
 	@Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response getAppByJob(@HeaderParam("accept") String type, @QueryParam("jobId") String jobId) {
-		// validation media type
-		if (!type.equals(MediaType.WILDCARD) //
-				&& !type.equals(MediaType.APPLICATION_JSON)) {
-			return Response.status(Status.BAD_REQUEST).build();
-		}
 		// validation, jobId is an valid int
 		if (null != jobId && !"".equals(jobId)) {
 			try {
@@ -101,6 +92,7 @@ public class ApplicationServices {
 	@POST
 	@Path("/applications")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@RolesAllowed({ Roles.C })
 	public Response post(Application obj) {
 		// validation, appId must be null or empty
 		String appId = obj.getAppId();
@@ -127,7 +119,7 @@ public class ApplicationServices {
 		// check, posting status is open
 		Posting p = pDao.findById(obj.getJobId());
 		if (PostingStatus.OPEN != Integer.parseInt(p.getStatus()))
-			return Response.status(Status.FORBIDDEN).build();
+			return Response.status(Status.BAD_REQUEST).entity("posing status is not open, can't post").build();
 		// insert
 		obj.setStatus(String.valueOf(ApplicationStatus.RECEIVED));
 		int insertedId = aDao.insert(obj);
@@ -147,6 +139,7 @@ public class ApplicationServices {
 	@PUT
 	@Path("/applications/{appId}")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@RolesAllowed({ Roles.C })
 	public Response put(@PathParam("appId") String appId, Application obj) {
 		// validation, appId param should be an int
 		try {
@@ -185,7 +178,7 @@ public class ApplicationServices {
 		// cannot update application if already in-review
 		int status = Integer.parseInt(p.getStatus());
 		if (status >= ApplicationStatus.IN_REVIEW)
-			return Response.status(Status.FORBIDDEN).build();
+			return Response.status(Status.BAD_REQUEST).entity("applicatoin is in_review, can't update").build();
 		// update
 		obj.setAppId(appId);
 		int affectedRowCount = aDao.update(obj);
@@ -197,8 +190,8 @@ public class ApplicationServices {
 	}
 
 	@PUT
-	@Path("/applications/{status}/{id}") // status is rejected or accept or
-											// in_review
+	@Path("/applications/{status}/{id}")
+	@RolesAllowed({ Roles.M, Roles.R })
 	public Response updateStatus(@PathParam("status") String status, @PathParam("id") String id) {
 		// validation, id should be an int
 		try {
@@ -217,7 +210,8 @@ public class ApplicationServices {
 			// but set to r/a only after in_review
 			if (!status.equals("in_review")// rejected or accepted
 					&& Integer.parseInt(a.getStatus()) < ApplicationStatus.IN_REVIEW) {
-				return Response.status(Status.FORBIDDEN).build();
+				return Response.status(Status.BAD_REQUEST)
+						.entity("application is not in_review, can't change to accepted/rejected").build();
 			}
 			// update
 			switch (status) {

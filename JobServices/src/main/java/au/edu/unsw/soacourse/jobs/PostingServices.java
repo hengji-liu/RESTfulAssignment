@@ -18,11 +18,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import au.edu.unsw.soacourse.jobs.auth.Roles;
+import au.edu.unsw.soacourse.jobs.auth.SecuredByKey;
+import au.edu.unsw.soacourse.jobs.auth.RolesAllowed;
 import au.edu.unsw.soacourse.jobs.dao.ApplicationsDao;
 import au.edu.unsw.soacourse.jobs.dao.PostingsDao;
 import au.edu.unsw.soacourse.jobs.model.Posting;
 import au.edu.unsw.soacourse.jobs.model.PostingStatus;
 
+@SecuredByKey
 public class PostingServices {
 	private PostingsDao pDao = new PostingsDao();
 	private ApplicationsDao aDao = new ApplicationsDao();
@@ -30,17 +34,12 @@ public class PostingServices {
 	@GET
 	@Path("/postings/{id}")
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response get(@HeaderParam("accept") String type, @PathParam("id") String id) {
 		// validation, id should be an int
 		try {
 			Integer.parseInt(id);
 		} catch (NumberFormatException e) {
-			return Response.status(Status.BAD_REQUEST).build();
-		}
-		// validation media type
-		if (!type.equals(MediaType.WILDCARD) //
-				&& !type.equals(MediaType.APPLICATION_JSON) //
-				&& !type.equals(MediaType.APPLICATION_XML)) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// get item
@@ -57,6 +56,7 @@ public class PostingServices {
 	@POST
 	@Path("/postings")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@RolesAllowed({ Roles.M })
 	public Response post(Posting obj) {
 		// validation, jobId must be null or empty
 		String jobId = obj.getJobId();
@@ -101,6 +101,7 @@ public class PostingServices {
 
 	@DELETE
 	@Path("/postings/{id}")
+	@RolesAllowed({ Roles.M })
 	public Response del(@PathParam("id") String id) {
 		// validation, id should be an int
 		try {
@@ -115,7 +116,8 @@ public class PostingServices {
 		// check no application is associated with this posting
 		int count = aDao.countByJobId(id);
 		if (count > 0) {
-			return Response.status(Status.FORBIDDEN).build();
+			return Response.status(Status.BAD_REQUEST)
+					.entity("at least one application has been associated with this posting, can't delete").build();
 		} else if (count < 0) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -131,6 +133,7 @@ public class PostingServices {
 	@PUT
 	@Path("/postings/{id}")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@RolesAllowed({ Roles.M, Roles.R })
 	public Response put(@PathParam("id") String id, Posting obj) {
 		// validation, id param should be an int
 		try {
@@ -159,7 +162,8 @@ public class PostingServices {
 		// check no application is associated with this posting
 		int count = aDao.countByJobId(id);
 		if (count > 0) {
-			return Response.status(Status.FORBIDDEN).build();
+			return Response.status(Status.BAD_REQUEST)
+					.entity("at least one application has been associated with this posting, can't delete").build();
 		} else if (count < 0) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -176,12 +180,9 @@ public class PostingServices {
 	@GET
 	@Path("/postings") // postings?keyword=yo&status=0
 	@Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response search(@HeaderParam("accept") String type, @QueryParam("keyword") String keyword,
 			@QueryParam("status") String status) {
-		// validation media type
-		if (!type.equals(MediaType.WILDCARD) && !type.equals(MediaType.APPLICATION_JSON))
-			return Response.status(Status.BAD_REQUEST).build();
-
 		// if no query param
 		if ((null == keyword || "".equals(keyword)) && (null == status || "".equals(status))) {
 			List<Posting> list = pDao.findAll();
@@ -201,7 +202,6 @@ public class PostingServices {
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 		}
-
 		// search on at least one param
 		List<Posting> list = pDao.search(keyword, status);
 		if (null != list) {
@@ -213,6 +213,7 @@ public class PostingServices {
 
 	@PUT
 	@Path("/postings/{status}/{id}") // status is rejected or accept
+	@RolesAllowed({ Roles.M, Roles.R })
 	public Response updateStatus(@PathParam("status") String status, @PathParam("id") String id) {
 		// validation, id should be an int
 		try {
@@ -248,8 +249,9 @@ public class PostingServices {
 			}
 			// status have a total order, can only move forward
 			if (newStatus < oldStatus)
-				return Response.status(Status.FORBIDDEN).build();
+				return Response.status(Status.BAD_REQUEST).entity("status can only move forward").build();
 			// update status
+			p.setStatus(String.valueOf(newStatus));
 			int affectedRowCount = pDao.update(p);
 			if (0 == affectedRowCount) { // update fail
 				return Response.status(Status.INTERNAL_SERVER_ERROR).build();

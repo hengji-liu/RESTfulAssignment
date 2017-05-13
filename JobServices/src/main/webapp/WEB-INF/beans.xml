@@ -13,6 +13,8 @@
         </jaxrs:serviceBeans>
         <jaxrs:providers>
             <bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
+            <bean class="au.edu.unsw.soacourse.jobs.auth.AuthenticationFilter"/>
+            <bean class="au.edu.unsw.soacourse.jobs.auth.AuthorisationFilter"/>
         </jaxrs:providers>
     </jaxrs:server>
 </beans>

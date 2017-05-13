@@ -17,6 +17,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import au.edu.unsw.soacourse.jobs.auth.Roles;
+import au.edu.unsw.soacourse.jobs.auth.RolesAllowed;
+import au.edu.unsw.soacourse.jobs.auth.SecuredByKey;
 import au.edu.unsw.soacourse.jobs.dao.ApplicationsDao;
 import au.edu.unsw.soacourse.jobs.dao.PostingsDao;
 import au.edu.unsw.soacourse.jobs.dao.ReviewsDao;
@@ -26,6 +29,7 @@ import au.edu.unsw.soacourse.jobs.model.PostingStatus;
 import au.edu.unsw.soacourse.jobs.model.Review;
 import au.edu.unsw.soacourse.jobs.model.ReviewDecisoin;
 
+@SecuredByKey
 public class ReviewServices {
 	private ReviewsDao rDao = new ReviewsDao();
 	private PostingsDao pDao = new PostingsDao();
@@ -34,17 +38,12 @@ public class ReviewServices {
 	@GET
 	@Path("/reviews/{rId}")
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response get(@HeaderParam("accept") String type, @PathParam("rId") String rId) {
 		// validation, rId should be an int
 		try {
 			Integer.parseInt(rId);
 		} catch (NumberFormatException e) {
-			return Response.status(Status.BAD_REQUEST).build();
-		}
-		// validation media type
-		if (!type.equals(MediaType.WILDCARD) //
-				&& !type.equals(MediaType.APPLICATION_JSON) //
-				&& !type.equals(MediaType.APPLICATION_XML)) {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		// get item
@@ -61,10 +60,8 @@ public class ReviewServices {
 	@GET
 	@Path("/reviews")
 	@Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response getAllReviews(@HeaderParam("accept") String type) {
-		// validation media type
-		if (!type.equals(MediaType.WILDCARD) && !type.equals(MediaType.APPLICATION_JSON))
-			return Response.status(Status.BAD_REQUEST).build();
 		List<Review> list = rDao.findAll();
 		if (null != list) {
 			return Response.status(Status.OK).entity(list).type(MediaType.APPLICATION_JSON).build();
@@ -76,10 +73,8 @@ public class ReviewServices {
 	@GET
 	@Path("applications/{appId}/reviews")
 	@Produces(MediaType.APPLICATION_JSON)
+	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
 	public Response getReviewByApp(@HeaderParam("accept") String type, @QueryParam("appId") String appId) {
-		// validation media type
-		if (!type.equals(MediaType.WILDCARD) && !type.equals(MediaType.APPLICATION_JSON))
-			return Response.status(Status.BAD_REQUEST).build();
 		// validation, appId is an valid int
 		if (null != appId && !"".equals(appId)) {
 			try {
@@ -100,6 +95,7 @@ public class ReviewServices {
 	@POST
 	@Path("/reviews")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@RolesAllowed({ Roles.R })
 	public Response post(Review obj) {
 		// validation, reviewId must be null or empty
 		String reviewId = obj.getReviewId();
@@ -135,7 +131,7 @@ public class ReviewServices {
 		Application a = aDao.findById(obj.getAppId());
 		Posting p = pDao.findById(a.getJobId());
 		if (PostingStatus.IN_REVIEW != Integer.parseInt(p.getStatus()))
-			return Response.status(Status.FORBIDDEN).build();
+			return Response.status(Status.BAD_REQUEST).entity("posting status is not in_review, can't post").build();
 		// insert
 		int insertedId = rDao.insert(obj);
 		if (0 != insertedId) {
@@ -154,6 +150,7 @@ public class ReviewServices {
 	@PUT
 	@Path("/reviews/{rId}")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	@RolesAllowed({ Roles.R })
 	public Response put(@PathParam("rId") String rId, Review obj) {
 		// validation, rId should be an int
 		try {
@@ -181,7 +178,7 @@ public class ReviewServices {
 		Application a = aDao.findById(obj.getAppId());
 		Posting p = pDao.findById(a.getJobId());
 		if (PostingStatus.IN_REVIEW != Integer.parseInt(p.getStatus()))
-			return Response.status(Status.FORBIDDEN).build();
+			return Response.status(Status.BAD_REQUEST).entity("posting status is not in_review, can't update").build();
 		// update
 		obj.setReviewId(rId);
 		int affectedRowCount = rDao.update(obj);

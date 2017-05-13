@@ -1,4 +1,4 @@
-package au.edu.unsw.soacourse.foundITCo.dao;
+package au.edu.unsw.soacourse.foundITCo.Dao;
 
 import java.util.ArrayList;
 import java.util.Arrays;
