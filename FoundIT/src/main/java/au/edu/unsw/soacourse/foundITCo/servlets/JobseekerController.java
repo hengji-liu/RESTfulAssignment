@@ -176,4 +176,34 @@ public class JobseekerController extends HttpServlet {
 		}
 	}
 
+	private void gotoUpdateApplication(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String aid = request.getParameter("aid");
+		User userInSession = Utils.getLoginedUser(request.getSession());
+		Application app = applicationsDao.findApplicationById(aid);
+		request.setAttribute("application", app);
+		request.getRequestDispatcher("jobseeker/updateApplication.jsp").forward(request, response);
+	}
+
+	private void updateApplication(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String aid = request.getParameter("id");
+		String candidateDetails = request.getParameter("candidateDetails");
+		String coverLetter = request.getParameter("coverLetter");
+		// assembly applications
+		Application application = new Application();
+		application.setCandidateDetails(candidateDetails);
+		application.setCoverLetter(coverLetter);
+		// pass to service
+		Response serviceResponse = applicationsDao.updateApplication(aid, application);
+		int httpStatus = serviceResponse.getStatus();
+		if (204 != httpStatus) {
+			request.setAttribute("errorCode", httpStatus);
+			request.getRequestDispatcher("fail.jsp").forward(request, response);
+		} else {
+			request.getRequestDispatcher("jobseeker?method=gotoManageApplication&archived=0").forward(request,
+					response);
+		}
+
+	}
 }

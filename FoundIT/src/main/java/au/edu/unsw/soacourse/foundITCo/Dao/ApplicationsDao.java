@@ -80,4 +80,15 @@ public class ApplicationsDao {
 		Response serviceResponse = client.getResponse();
 		return serviceResponse;
 	}
+
+	public Response updateApplication(String id, Application application) {
+		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
+		client.path("/applications/" + id);
+		client.type(MediaType.APPLICATION_JSON);
+		addKeys(client);
+		client.put(application);
+		Response serviceResponse = client.getResponse();
+		return serviceResponse;
+	}
+
 }

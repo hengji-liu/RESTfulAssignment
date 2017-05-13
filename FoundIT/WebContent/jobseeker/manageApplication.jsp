@@ -24,7 +24,7 @@
 				<td><c:choose>
 						<c:when test="${application.status == 'Received'}">
 							<a
-								href="jobseeker?method=updateApplication&aid=${application.appId }">
+								href="jobseeker?method=gotoUpdateApplication&aid=${application.appId }">
 								Click to update application</a>
 						</c:when>
 						<c:when test="${application.status == 'In review'}">
