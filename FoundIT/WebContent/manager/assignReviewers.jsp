@@ -9,17 +9,18 @@
 <title>Manage current job postings</title>
 </head>
 <body>
-	<form action="" method="post">
+	<form
+		action="manager?method=changeStatus&newStatus=in_review&pid=${pid }"
+		method="post">
 		<input type="submit" value="Create">
 		<table border="1">
 			<tr>
-				<th>Reviewer Email</th>
-				<th>Action</th>
+				<th>Reviewer</th>
 			</tr>
 			<c:forEach var="reviewer" items="${reviewers}">
             <tr>
-					<td>${reviewer.email }</td>
-					<td>a radiobox here</td>
+					<td><input type="checkbox" name="selectedReviewers"
+						value="${reviewer.email }">${reviewer.email }<br></td>
 				</tr>
 			</c:forEach>
 		</table>
