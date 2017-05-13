@@ -30,7 +30,7 @@
 						</c:when>
 						<c:when test="${posting.status == 'Open'}">
 							<a
-								href="manager?method=changeStatus&newStatus=in_review&pid=${posting.jobId }">
+								href="manager?method=gotoAssignReviewers&pid=${posting.jobId }">
 								Click to collect candidate and assign reviewers for this posting</a>
 						</c:when>
 						<c:when test="${posting.status == 'In review'}">

@@ -19,14 +19,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 
+import org.w3c.dom.ls.LSInput;
+
 import com.j256.ormlite.dao.Dao;
 
 import au.edu.unsw.soacourse.foundITCo.DBUtil;
 import au.edu.unsw.soacourse.foundITCo.Utils;
+import au.edu.unsw.soacourse.foundITCo.Dao.ApplicationsDao;
 import au.edu.unsw.soacourse.foundITCo.Dao.PostingsDao;
+import au.edu.unsw.soacourse.foundITCo.beans.Application;
 import au.edu.unsw.soacourse.foundITCo.beans.Keys;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
+import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
 import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 
 @WebServlet("/manager")
@@ -35,6 +40,7 @@ public class ManagerController extends HttpServlet {
 	private Dao<UserPosting, String> userPostingDao = DBUtil.getUserPostingDao();
 	private Dao<User, String> userDao = DBUtil.getUserDao();
 	private PostingsDao postingsDao = new PostingsDao(Keys.SHORT_VAL_MANAGER);
+	private ApplicationsDao applicationsDao = new ApplicationsDao(Keys.SHORT_VAL_MANAGER);
 
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -78,14 +84,11 @@ public class ManagerController extends HttpServlet {
 		}
 		List<Posting> list = new ArrayList<>();
 		if (null != ups && 0 != ups.size()) {
-			// gather ids
-			List<String> ids = new ArrayList<>();
 			for (Iterator iterator = ups.iterator(); iterator.hasNext();) {
 				UserPosting up = (UserPosting) iterator.next();
-				ids.add(up.getPosting_id());
+				Posting p = postingsDao.findPostingById(up.getPosting_id());
+				list.add(p);
 			}
-			// get postings from jobservices
-			list = postingsDao.findPostingById(ids);
 		}
 		request.setAttribute("list", list);
 		if ("0".equals(archived)) {
@@ -97,6 +100,7 @@ public class ManagerController extends HttpServlet {
 
 	private void gotoAssignReviewers(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		String pid = request.getParameter("pid");
 		User userInSession = Utils.getLoginedUser(request.getSession());
 		// get all reviewers
 		List<User> reviewers = null;
@@ -105,8 +109,8 @@ public class ManagerController extends HttpServlet {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		System.out.println(reviewers.size());
 		request.setAttribute("reviewers", reviewers);
+		request.setAttribute("pid", pid);
 		request.getRequestDispatcher("manager/assignReviewers.jsp").forward(request, response);
 	}
 
@@ -163,8 +167,32 @@ public class ManagerController extends HttpServlet {
 		} else {
 			RequestDispatcher dispatcher = null;
 			switch (newStatus) {
-			case "in_review": // TODO
-				dispatcher = request.getRequestDispatcher("manager?method=gotoAssignReviewers");
+			case "in_review":
+				// save userPosting relationship for reviewers
+				String[] selectedReviewers = request.getParameterValues("selectedReviewers");
+				for (int j = 0; j < selectedReviewers.length; j++) {
+					UserPosting up = new UserPosting();
+					up.setId(UUID.randomUUID().toString());
+					try {
+						User reviewer = userDao.queryForId(selectedReviewers[j]);
+						up.setUser(reviewer);
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+					up.setPosting_id(pid);
+					try {
+						userPostingDao.create(up);
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+				// change application status to in_review
+				List<Application> applications = applicationsDao.findApplicationByPostingId(pid);
+				for (Iterator iterator = applications.iterator(); iterator.hasNext();) {
+					Application application = (Application) iterator.next();
+					applicationsDao.updateStatus(application.getAppId(), newStatus);
+				}
+				dispatcher = request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0");
 				break;
 			case "sent_invitations": // TODO
 				dispatcher = request.getRequestDispatcher("manager?method=gotoSetInterviewTime");
