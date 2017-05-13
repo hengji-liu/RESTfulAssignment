@@ -79,7 +79,7 @@ public class LoginController extends HttpServlet {
 				else if (user.getUserType().equals("hiringteam"))
 					dispatcher = getServletContext().getRequestDispatcher("/home_hiringteam.jsp");
 				else 
-					dispatcher = getServletContext().getRequestDispatcher("/home_jobseeker");
+					dispatcher = getServletContext().getRequestDispatcher("/jobseeker/home_jobseeker.jsp");
 			}
 			else {
 				dispatcher = getServletContext().getRequestDispatcher("/error.jsp");
