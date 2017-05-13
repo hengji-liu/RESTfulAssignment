@@ -4,7 +4,11 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.servlet.ServletException;
@@ -83,9 +87,9 @@ public class JobseekerController extends HttpServlet {
 		up.setUser(userInSession);
 		try {
 			List<UserPosting> list = userPostingDao.queryForMatching(up);
-			if (list.size()>0) {
+			if (list.size() > 0) {
 				request.getRequestDispatcher("jobseeker/home_jobseeker.jsp").forward(request, response);
-			}else{
+			} else {
 				request.setAttribute("id", id);
 				request.getRequestDispatcher("jobseeker/applyForJob.jsp").forward(request, response);
 			}
@@ -127,7 +131,8 @@ public class JobseekerController extends HttpServlet {
 				up.setPosting_id(pid);
 				up.setUser(userInSession);
 				userPostingDao.create(up);
-				request.getRequestDispatcher("jobseeker?method=gotoManageApplication").forward(request, response);
+				request.getRequestDispatcher("jobseeker?method=gotoManageApplication&archived=0").forward(request,
+						response);
 			}
 		} catch (SQLException e1) {
 			e1.printStackTrace();
@@ -136,8 +141,89 @@ public class JobseekerController extends HttpServlet {
 
 	private void gotoManageApplication(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		// TODO
-		request.getRequestDispatcher("jobseeker/manageApplication.jsp").forward(request, response);
+		User userInSession = Utils.getLoginedUser(request.getSession());
+		String archived = request.getParameter("archived");
+		try {
+			// get this user's active/archived application ids
+			Map<String, Object> queryParas = new HashMap<>();
+			queryParas.put("user_id", userInSession);
+			queryParas.put("archived", archived);
+			List<UserApplication> userAppList = userApplicationDao.queryForFieldValues(queryParas);
+			// get applications from job services
+			List<Application> applications = new ArrayList<>();
+			for (Iterator iterator = userAppList.iterator(); iterator.hasNext();) {
+				UserApplication userApplication = (UserApplication) iterator.next();
+				String aid = userApplication.getApplication_id();
+				Application a = applicationsDao.findApplicationById(aid);
+				applications.add(a);
+			}
+			// change jobid to meaningful posting info
+			for (Iterator iterator = applications.iterator(); iterator.hasNext();) {
+				Application application = (Application) iterator.next();
+				String pid = application.getJobId();
+				Posting p = postingsDao.findPostingById(pid);
+				application.setJobId(p.getCompanyName() + "," + p.getPositionType() + "," + p.getLocation() + ","
+						+ p.getDescriptions());
+			}
+			request.setAttribute("list", applications);
+			if ("0".equals(archived)) {
+				request.getRequestDispatcher("jobseeker/manageApplication.jsp").forward(request, response);
+			} else {
+				request.getRequestDispatcher("jobseeker/manageArchived.jsp").forward(request, response);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void gotoUpdateApplication(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String aid = request.getParameter("aid");
+		Application app = applicationsDao.findApplicationById(aid);
+		request.setAttribute("application", app);
+		request.getRequestDispatcher("jobseeker/updateApplication.jsp").forward(request, response);
+	}
+
+	private void updateApplication(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String aid = request.getParameter("id");
+		String candidateDetails = request.getParameter("candidateDetails");
+		String coverLetter = request.getParameter("coverLetter");
+		// assembly applications
+		Application application = new Application();
+		application.setCandidateDetails(candidateDetails);
+		application.setCoverLetter(coverLetter);
+		// pass to service
+		Response serviceResponse = applicationsDao.updateApplication(aid, application);
+		int httpStatus = serviceResponse.getStatus();
+		if (204 != httpStatus) {
+			request.setAttribute("errorCode", httpStatus);
+			request.getRequestDispatcher("fail.jsp").forward(request, response);
+		} else {
+			request.getRequestDispatcher("jobseeker?method=gotoManageApplication&archived=0").forward(request,
+					response);
+		}
+
+	}
+
+	private void archive(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String aid = request.getParameter("id");
+		User userInSession = Utils.getLoginedUser(request.getSession());
+		UserApplication ua = new UserApplication();
+		ua.setUser(userInSession);
+		ua.setApplication_id(aid);
+		try {
+			List<UserApplication> result = userApplicationDao.queryForMatching(ua);
+			UserApplication resultUa = result.get(0);
+			resultUa.setArchived(1);
+			userApplicationDao.update(resultUa);
+			request.getRequestDispatcher("jobseeker?method=gotoManageApplication&archived=1").forward(request,
+					response);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 }

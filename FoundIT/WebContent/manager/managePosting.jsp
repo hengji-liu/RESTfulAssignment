@@ -42,7 +42,7 @@
 								Click to view short-listed candidates</a>
 						</c:when>
 						<c:otherwise>
-							<a href=""> Click to archive this posting</a>
+							<a href="manager?method=archive&pid=${posting.jobId}"> Click to archive this posting</a>
 						</c:otherwise>
 					</c:choose></td>
 			</tr>
