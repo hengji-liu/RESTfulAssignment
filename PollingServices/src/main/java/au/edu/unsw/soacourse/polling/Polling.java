@@ -34,7 +34,6 @@ import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
-@Path("/polling")
 public class Polling {
 	private final String DATABASE_URL = "jdbc:sqlite:"+ getClass().getClassLoader().getResource("/polling.db");
 	private final static String SECURITY_KEY = "i-am-foundit";	
