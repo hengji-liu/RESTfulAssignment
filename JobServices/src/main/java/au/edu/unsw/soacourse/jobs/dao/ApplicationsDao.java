@@ -25,7 +25,7 @@ public class ApplicationsDao {
 			ResultSet rs = pstmt.executeQuery();
 			if (rs.next()) {
 				Application p = new Application();
-				p.setAppId(rs.getString("appID"));
+				p.setAppId(rs.getString("appId"));
 				p.setJobId(rs.getString("jobId"));
 				p.setCandidateDetails(rs.getString("candidateDetails"));
 				p.setCoverLetter(rs.getString("coverLetter"));
@@ -51,7 +51,7 @@ public class ApplicationsDao {
 			ResultSet rs = stmt.executeQuery(sql);
 			while (rs.next()) {
 				Application p = new Application();
-				p.setAppId(rs.getString("appID"));
+				p.setAppId(rs.getString("appId"));
 				p.setJobId(rs.getString("jobId"));
 				p.setCandidateDetails(rs.getString("candidateDetails"));
 				p.setCoverLetter(rs.getString("coverLetter"));
@@ -80,7 +80,7 @@ public class ApplicationsDao {
 			ResultSet rs = stmt.executeQuery(sql);
 			while (rs.next()) {
 				Application p = new Application();
-				p.setAppId(rs.getString("appID"));
+				p.setAppId(rs.getString("appId"));
 				p.setJobId(rs.getString("jobId"));
 				p.setCandidateDetails(rs.getString("candidateDetails"));
 				p.setCoverLetter(rs.getString("coverLetter"));
