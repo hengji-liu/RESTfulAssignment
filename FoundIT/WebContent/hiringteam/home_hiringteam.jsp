@@ -4,14 +4,16 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Hi There</title>
+<title>Home</title>
 </head>
 <body>
 
+<h2>Home</h2>
+
 	<ul>
-		<li><a href="signout">Sign out</a></li>
-		<li><a href="user?profile">Profile</a></li>
 		<li><a href="hiringteam?applications">Candidate List</a></li>
+		<li><a href="user?profile">Profile</a></li>
+		<li><a href="signout">Sign out</a></li>
 	</ul>
 	
 	

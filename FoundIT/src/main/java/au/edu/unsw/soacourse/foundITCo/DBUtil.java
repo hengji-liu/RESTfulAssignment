@@ -8,6 +8,7 @@ import au.edu.unsw.soacourse.foundITCo.beans.User;
 import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
 import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 import au.edu.unsw.soacourse.foundITCo.beans.UserProfile;
+import au.edu.unsw.soacourse.foundITCo.beans.UserReview;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
@@ -25,6 +26,8 @@ public class DBUtil {
 	private static Dao<UserPosting, String> UserPostingDao;
 	private static Dao<UserApplication, String> userApplicationDao;
 	private static Dao<ApplicationReviewer, String> applicationReviewerDao;
+	private static Dao<UserReview, Integer> userReviewDao;
+	private static Dao<UserPosting, String> userPostingDao;
 
 	public static Dao<UserPosting, String> getUserPostingDao() {
 		try {
@@ -154,6 +157,33 @@ public class DBUtil {
 			}
 		}
 		return applicationReviewerDao;
+	}
+	
+	
+	public static Dao<UserReview, Integer> getUserReviewDao() {
+		try {
+			connectionSource = new JdbcConnectionSource(DATABASE_URL);
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		if (userReviewDao == null) {
+			try {
+
+				userReviewDao = DaoManager.createDao(connectionSource, UserReview.class);
+				if (!userReviewDao.isTableExists()) {
+					TableUtils.createTable(connectionSource, UserReview.class);
+				}
+				// else {
+				// TableUtils.dropTable(connectionSource, Poll.class, true);
+				// }
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return userReviewDao;
 	}
 	
 	public static void closeConnection() throws IOException {

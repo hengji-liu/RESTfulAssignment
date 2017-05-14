@@ -11,7 +11,7 @@ public class ApplicationReviewer {
 	
 	@DatabaseField(foreign = true, columnName = USER_ID)
 	private User reviewer;
-	@DatabaseField(foreign = true, columnName = APPLICATION_ID)
+	@DatabaseField(foreign = true, columnName = APPLICATION_ID, foreignAutoRefresh = true)
 	private UserApplication userApplication;
 	
 	public ApplicationReviewer() {

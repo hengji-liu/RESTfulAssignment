@@ -71,7 +71,7 @@ public class ApplicationServices {
 	@Path("/postings/{jobId}/applications")
 	@Produces(MediaType.APPLICATION_JSON)
 	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
-	public Response getAppByJob(@HeaderParam("accept") String type, @QueryParam("jobId") String jobId) {
+	public Response getAppByJob(@HeaderParam("accept") String type, @PathParam("jobId") String jobId) {
 		// validation, jobId is an valid int
 		if (null != jobId && !"".equals(jobId)) {
 			try {

@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 
 import org.apache.cxf.jaxrs.client.WebClient;
@@ -14,7 +14,6 @@ import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 import au.edu.unsw.soacourse.foundITCo.Utils;
 import au.edu.unsw.soacourse.foundITCo.beans.Application;
 import au.edu.unsw.soacourse.foundITCo.beans.Keys;
-import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 
 public class ApplicationDao {
 
@@ -31,7 +30,7 @@ public class ApplicationDao {
         for (Iterator<String> iterator = ids.iterator(); iterator.hasNext();) {
             String id = (String) iterator.next();
             client.back(true);
-            client.path("/applications/" + id);
+            client.path("/JobServices/applications/" + id);
             addKeys(client, shortKey);
             try {
                 Application a = client.get(Application.class);
@@ -39,28 +38,42 @@ public class ApplicationDao {
                 applications.add(a);
             } catch (Exception e) {
                 // TODO
+            	e.printStackTrace();
                 System.out.println(" this posting id is not in the db of jobservices");
             }
         }
+        client.close();
         return applications;
     }
-
-//    public Response createPosting(Posting posting){
-//        WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
-//        client.path("/postings");
-//        client.type(MediaType.APPLICATION_JSON);
-//        addKeys(client);
-//        client.post(posting);
-//        Response serviceResponse = client.getResponse();
-//        return serviceResponse;
-//    }
-//
-//    public Response updateStatus(String pid, String newStatus){
-//        WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
-//        client.path("/postings/" +newStatus+"/"+pid);
-//        addKeys(client);
-//        client.put(null);
-//        Response serviceResponse = client.getResponse();
-//        return serviceResponse;
-//    }
+    
+    public static List<Application> findApplicationsByPostingId(String baseUri, String shortKey, String pId) {
+        List<Application> applications = new ArrayList<>();
+        client = WebClient.create(baseUri, Arrays.asList(new JacksonJsonProvider()));
+//        for (Iterator<String> iterator = ids.iterator(); iterator.hasNext();) {
+//            String id = (String) iterator.next();
+            client.back(true);
+            client.path("/JobServices/postings/" + pId + "/applications");
+            addKeys(client, shortKey);
+            try {
+                applications = client.get(new GenericType<List<Application>>() {});
+//                Utils.trasnfromApplicationStatus(a);
+            } catch (Exception e) {
+                // TODO
+            	e.printStackTrace();
+                System.out.println(" this posting id is not in the db of jobservices");
+            }
+//        }
+        client.close();
+        return applications;
+    }
+    
+    public static Response updateStatus(String baseUri, String shortKey, String rid, String newStatus){
+		WebClient client = WebClient.create(baseUri, Arrays.asList(new JacksonJsonProvider()));
+		client.path("/JobServices/applications/" + newStatus + "/" + rid);
+		addKeys(client, shortKey);
+		client.put(null);
+		Response serviceResponse = client.getResponse();
+		client.close();
+		return serviceResponse;
+	}
 }

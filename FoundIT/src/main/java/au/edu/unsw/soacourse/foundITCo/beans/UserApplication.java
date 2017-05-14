@@ -5,10 +5,10 @@ import com.j256.ormlite.field.DatabaseField;
 public class UserApplication {
 	@DatabaseField(generatedId = true)
 	private int id;
-	@DatabaseField(foreign = true, canBeNull = false)
+	@DatabaseField(foreign = true, canBeNull = false, foreignAutoRefresh = true)
 	private User user;
 	@DatabaseField
-	private String application_id;
+	private String applicationId;
 
 	public UserApplication() {
 		
@@ -30,12 +30,12 @@ public class UserApplication {
 		this.user = user;
 	}
 
-	public String getApplication_id() {
-		return application_id;
+	public String getApplicationId() {
+		return applicationId;
 	}
 
-	public void setApplication_id(String application_id) {
-		this.application_id = application_id;
+	public void setApplicationId(String applicationId) {
+		this.applicationId = applicationId;
 	}
 	
 	

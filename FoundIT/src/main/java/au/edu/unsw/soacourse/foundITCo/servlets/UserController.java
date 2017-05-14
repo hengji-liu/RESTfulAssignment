@@ -5,16 +5,12 @@ import java.sql.SQLException;
 import java.util.List;
 
 import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.stmt.QueryBuilder;
 
 import au.edu.unsw.soacourse.foundITCo.DBUtil;
 import au.edu.unsw.soacourse.foundITCo.Utils;
@@ -84,8 +80,6 @@ public class UserController extends HttpServlet {
 			HttpSession session = request.getSession();
 			User user = Utils.getLoginedUser(session);
 			
-			List<UserProfile> userProfiles;
-			
 			if (user == null) {
 				try {
 					user = DBUtil.getUserDao().queryForId(Utils.getUserNameInCookie(request));
@@ -108,10 +102,6 @@ public class UserController extends HttpServlet {
 			
 			try {
 				if (DBUtil.getUserProfileDao().createOrUpdate(userProfile) != null) {
-//					ServletContext context = getServletContext();
-//					RequestDispatcher rd = context.getRequestDispatcher(arg0)
-//					RequestDispatcher dispatcher = request.getRequestDispatcher("user?profile");
-//					dispatcher.forward(request, response);
 					response.sendRedirect("user?profile");
 				} 
 			} catch (SQLException e) {

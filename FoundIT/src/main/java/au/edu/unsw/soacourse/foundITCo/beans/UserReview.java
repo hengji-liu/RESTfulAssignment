@@ -3,9 +3,11 @@ package au.edu.unsw.soacourse.foundITCo.beans;
 import com.j256.ormlite.field.DatabaseField;
 
 public class UserReview {
-	@DatabaseField(id = true, generatedId = true)
-	private String id;
-	@DatabaseField(foreign = true, canBeNull = false)
+	public static final String USER_ID = "user_id";
+	
+	@DatabaseField(generatedId = true)
+	private int id;
+	@DatabaseField(foreign = true, canBeNull = false, columnName = USER_ID)
 	private User user;
 	@DatabaseField
 	private String review_id;
@@ -14,11 +16,11 @@ public class UserReview {
 		
 	}
 
-	public String getId() {
+	public int getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 

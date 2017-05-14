@@ -64,7 +64,7 @@ public class LoginController extends HttpServlet {
 		try {
 
 			User user = new User();
-			user.setEmail(request.getParameter("username"));
+			user.setEmail(request.getParameter("email"));
 			user.setPassword(request.getParameter("password"));
 			
 			RequestDispatcher dispatcher;
@@ -79,7 +79,7 @@ public class LoginController extends HttpServlet {
 				if (user.getUserType().equals("manager"))
 					dispatcher = getServletContext().getRequestDispatcher("/manager/home_manager.jsp");
 				else if (user.getUserType().equals("hiringteam"))
-					dispatcher = getServletContext().getRequestDispatcher("/home_hiringteam.jsp");
+					dispatcher = getServletContext().getRequestDispatcher("/hiringteam/home_hiringteam.jsp");
 				else 
 					dispatcher = getServletContext().getRequestDispatcher("/home_jobseeker.jsp");
 			}
