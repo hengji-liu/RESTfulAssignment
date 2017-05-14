@@ -35,7 +35,6 @@ import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 public class JobseekerController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Dao<UserPosting, String> userPostingDao = DBUtil.getUserPostingDao();
-	private Dao<User, String> userDao = DBUtil.getUserDao();
 	private Dao<UserApplication, String> userApplicationDao = DBUtil.getUserApplicationDao();
 	private PostingsDao postingsDao = new PostingsDao(Keys.SHORT_VAL_CANDIDATE);
 	private ApplicationsDao applicationsDao = new ApplicationsDao(Keys.SHORT_VAL_CANDIDATE);
@@ -158,7 +157,7 @@ public class JobseekerController extends HttpServlet {
 				applications.add(a);
 			}
 			// change jobid to meaningful posting info
-			for (Iterator iterator = applications.iterator(); iterator.hasNext();) {
+			for (Iterator<Application> iterator = applications.iterator(); iterator.hasNext();) {
 				Application application = (Application) iterator.next();
 				String pid = application.getJobId();
 				Posting p = postingsDao.findPostingById(pid);

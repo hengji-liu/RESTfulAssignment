@@ -28,7 +28,6 @@ import au.edu.unsw.soacourse.foundITCo.beans.Application;
 import au.edu.unsw.soacourse.foundITCo.beans.Keys;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
-import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
 import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 
 @WebServlet("/manager")
@@ -98,7 +97,6 @@ public class ManagerController extends HttpServlet {
 	private void gotoAssignReviewers(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		String pid = request.getParameter("pid");
-		User userInSession = Utils.getLoginedUser(request.getSession());
 		// get all reviewers
 		List<User> reviewers = null;
 		try {
@@ -114,6 +112,26 @@ public class ManagerController extends HttpServlet {
 	private void gotoCreateInterviewPoll(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		// TODO
+	}
+
+	private void gotoPostingDetails(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String pid = request.getParameter("pid");
+		Posting posting = postingsDao.findPostingById(pid);
+		List<Application> applications = applicationsDao.findApplicationByPostingId(pid);
+		int size = applications.size();
+		request.setAttribute("size", size); // decides if can be updated
+		request.setAttribute("applications", applications);
+		request.setAttribute("posting", posting);
+		request.getRequestDispatcher("manager/postingDetails.jsp").forward(request, response);
+	}
+
+	private void gotoUpdatePosting(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String pid = request.getParameter("pid");
+		Posting posting = postingsDao.findPostingById(pid);
+		request.setAttribute("posting", posting);
+		request.getRequestDispatcher("manager/updatePosting.jsp").forward(request, response);
 	}
 
 	private void createPosting(HttpServletRequest request, HttpServletResponse response)
@@ -153,6 +171,34 @@ public class ManagerController extends HttpServlet {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
+			request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0").forward(request, response);
+		}
+	}
+
+	private void updatePosting(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		// get paras
+		String pid = request.getParameter("pid");
+		String companyName = request.getParameter("companyName");
+		String salaryRate = request.getParameter("salaryRate");
+		String positionType = request.getParameter("positionType");
+		String location = request.getParameter("location");
+		String descriptions = request.getParameter("descriptions");
+		// assembly pojo
+		Posting posting = new Posting();
+		posting.setCompanyName(companyName);
+		posting.setSalaryRate(salaryRate);
+		posting.setPositionType(positionType);
+		posting.setLocation(location);
+		posting.setDescriptions(descriptions);
+		// post to job services
+		Response serviceResponse = postingsDao.updatePosting(pid, posting);
+		// deal with response
+		int httpStatus = serviceResponse.getStatus();
+		if (204 != httpStatus) {
+			request.setAttribute("errorCode", httpStatus);
+			request.getRequestDispatcher("fail.jsp").forward(request, response);
+		} else {
 			request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0").forward(request, response);
 		}
 	}
@@ -215,8 +261,7 @@ public class ManagerController extends HttpServlet {
 			UserPosting resultUp = result.get(0);
 			resultUp.setArchived(1);
 			userPostingDao.update(resultUp);
-			request.getRequestDispatcher("manager?method=gotoManagePosting&archived=1").forward(request,
-					response);
+			request.getRequestDispatcher("manager?method=gotoManagePosting&archived=1").forward(request, response);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
