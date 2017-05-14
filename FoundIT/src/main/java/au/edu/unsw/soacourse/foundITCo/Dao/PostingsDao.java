@@ -1,4 +1,4 @@
-package au.edu.unsw.soacourse.foundITCo.Dao;
+package au.edu.unsw.soacourse.foundITCo.dao;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,8 +11,8 @@ import javax.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
+import au.edu.unsw.soacourse.foundITCo.Keys;
 import au.edu.unsw.soacourse.foundITCo.Utils;
-import au.edu.unsw.soacourse.foundITCo.beans.Keys;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 
 public class PostingsDao {
@@ -71,12 +71,22 @@ public class PostingsDao {
 		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
 		client.path("/postings").query("keyword", keyword).query("status", status);
 		addKeys(client);
-		list = (List<Posting>) client.getCollection(Posting.class);
-		for (Iterator iterator = list.iterator(); iterator.hasNext();) {
+		list.addAll(client.getCollection(Posting.class));
+		for (Iterator<?> iterator = list.iterator(); iterator.hasNext();) {
 			Posting posting = (Posting) iterator.next();
 			Utils.trasnfromPostingStatus(posting);
 		}
 		return list;
+	}
+
+	public Response updatePosting(String id, Posting posting) {
+		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
+		client.path("/postings/" + id);
+		client.type(MediaType.APPLICATION_JSON);
+		addKeys(client);
+		client.put(posting);
+		Response serviceResponse = client.getResponse();
+		return serviceResponse;
 	}
 
 }

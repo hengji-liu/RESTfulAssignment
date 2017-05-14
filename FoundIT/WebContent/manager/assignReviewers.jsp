@@ -6,7 +6,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset==UTF-8">
-<title>Manage current job postings</title>
+<title>Assign reviewers for this job posting</title>
 </head>
 <body>
 	<form

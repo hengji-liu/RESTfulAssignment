@@ -6,9 +6,8 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset==UTF-8">
-<title>Job postings Details</title>
+<title>Job posting Details</title>
 </head>
-<a href="jobseeker?method=gotoApply&id=${posting.jobId }">Apply for this job</a>
 <body>
 	<table border="1">
 		<tr>
@@ -31,7 +30,29 @@
 			<td>Descriptions</td>
 			<td>${posting.descriptions }</td>
 		</tr>
-
 	</table>
+	<br/>
+		<c:choose>
+			<c:when test="${size == 0}">
+				<a href="manager?method=gotoUpdatePosting&pid=${posting.jobId }">Click
+					to modify this posting</a>
+			</c:when>
+			<c:otherwise>
+				<table border="1">
+				<tr>
+					<th>Candidate details</th>
+					<th>Cover letter</th>
+				</tr>
+					<c:forEach var="app" items="${applications}">
+					<tr>
+						<td>${app.candidateDetails }</td>
+						<td>${app.coverLetter }</td>
+					</tr>
+					</c:forEach>
+				</table>
+			</c:otherwise>
+		</c:choose>
+
+
 </body>
 </html>

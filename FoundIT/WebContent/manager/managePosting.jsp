@@ -8,8 +8,11 @@
 <meta http-equiv="Content-Type" content="text/html; charset==UTF-8">
 <title>Manage current job postings</title>
 </head>
-<a href="manager?method=gotoManagePosting&archived=1">Show archived
-	job posting</a>
+<ul>
+	<li><a href="manager?method=gotoManagePosting&archived=1">Show
+			archived job posting</a></li>
+	<li><a href="manager/home_manager.jsp">Go back to home</a></li>
+</ul>
 <body>
 	<table border="1">
 		<tr>
@@ -19,8 +22,10 @@
 		</tr>
 		<c:forEach var="posting" items="${list}">
             <tr>
-				<td>${posting.companyName},${posting.positionType},
-					${posting.location }, ${posting.descriptions }</td>
+				<td><a
+					href="manager?method=gotoPostingDetails&pid=${posting.jobId }">
+						${posting.companyName},${posting.positionType}, ${posting.location },
+						${posting.descriptions }</a></td>
 				<td>${posting.status}</td>
 				<td><c:choose>
 						<c:when test="${posting.status == 'Created'}">
@@ -42,7 +47,8 @@
 								Click to view short-listed candidates</a>
 						</c:when>
 						<c:otherwise>
-							<a href="manager?method=archive&pid=${posting.jobId}"> Click to archive this posting</a>
+							<a href="manager?method=archive&pid=${posting.jobId}"> Click
+								to archive this posting</a>
 						</c:otherwise>
 					</c:choose></td>
 			</tr>

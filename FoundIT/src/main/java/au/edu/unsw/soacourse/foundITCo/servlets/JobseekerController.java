@@ -21,21 +21,20 @@ import javax.ws.rs.core.Response;
 import com.j256.ormlite.dao.Dao;
 
 import au.edu.unsw.soacourse.foundITCo.DBUtil;
+import au.edu.unsw.soacourse.foundITCo.Keys;
 import au.edu.unsw.soacourse.foundITCo.Utils;
-import au.edu.unsw.soacourse.foundITCo.Dao.ApplicationsDao;
-import au.edu.unsw.soacourse.foundITCo.Dao.PostingsDao;
 import au.edu.unsw.soacourse.foundITCo.beans.Application;
-import au.edu.unsw.soacourse.foundITCo.beans.Keys;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
 import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
 import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
+import au.edu.unsw.soacourse.foundITCo.dao.ApplicationsDao;
+import au.edu.unsw.soacourse.foundITCo.dao.PostingsDao;
 
 @WebServlet("/jobseeker")
 public class JobseekerController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Dao<UserPosting, String> userPostingDao = DBUtil.getUserPostingDao();
-	private Dao<User, String> userDao = DBUtil.getUserDao();
 	private Dao<UserApplication, String> userApplicationDao = DBUtil.getUserApplicationDao();
 	private PostingsDao postingsDao = new PostingsDao(Keys.SHORT_VAL_CANDIDATE);
 	private ApplicationsDao applicationsDao = new ApplicationsDao(Keys.SHORT_VAL_CANDIDATE);
@@ -158,7 +157,7 @@ public class JobseekerController extends HttpServlet {
 				applications.add(a);
 			}
 			// change jobid to meaningful posting info
-			for (Iterator iterator = applications.iterator(); iterator.hasNext();) {
+			for (Iterator<Application> iterator = applications.iterator(); iterator.hasNext();) {
 				Application application = (Application) iterator.next();
 				String pid = application.getJobId();
 				Posting p = postingsDao.findPostingById(pid);

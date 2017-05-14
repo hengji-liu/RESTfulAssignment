@@ -8,6 +8,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset==UTF-8">
 <title>Job postings search results</title>
 </head>
+
+<a href="jobseeker/home_jobseeker.jsp">Go back to home</a>
 <body>
 	<table border="1">
 		<tr>

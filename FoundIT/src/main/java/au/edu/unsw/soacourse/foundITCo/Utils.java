@@ -6,9 +6,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import au.edu.unsw.soacourse.foundITCo.beans.Application;
-import au.edu.unsw.soacourse.foundITCo.beans.ApplicationStatus;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
-import au.edu.unsw.soacourse.foundITCo.beans.PostingStatus;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
 
 public class Utils {

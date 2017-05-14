@@ -1,4 +1,4 @@
-package au.edu.unsw.soacourse.foundITCo.beans;
+package au.edu.unsw.soacourse.foundITCo;
 
 public class Keys {
 	public static final String SECURITY_KEY = "Security-Key";

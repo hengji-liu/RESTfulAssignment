@@ -4,7 +4,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset==UTF-8">
-<title>Create a new application</title>
+<title>Apply for job</title>
 </head>
 <body>
 	<form action="jobseeker?method=createApplication&id=${id }" method="post">
