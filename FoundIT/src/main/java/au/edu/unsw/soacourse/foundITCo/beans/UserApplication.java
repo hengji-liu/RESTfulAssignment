@@ -3,22 +3,32 @@ package au.edu.unsw.soacourse.foundITCo.beans;
 import com.j256.ormlite.field.DatabaseField;
 
 public class UserApplication {
-	@DatabaseField(generatedId = true)
-	private int id;
-	@DatabaseField(foreign = true, canBeNull = false, foreignAutoRefresh = true)
+	@DatabaseField(id = true)
+	private String id;
+	@DatabaseField(foreign = true, canBeNull = false)
 	private User user;
 	@DatabaseField
-	private String applicationId;
+	private String application_id;
+	@DatabaseField
+	private int archived; // 0 is not, 1 is archived
 
-	public UserApplication() {
-		
+	public int getArchived() {
+		return archived;
 	}
 
-	public int getId() {
+	public void setArchived(int archived) {
+		this.archived = archived;
+	}
+
+	public UserApplication() {
+
+	}
+
+	public String getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -30,13 +40,12 @@ public class UserApplication {
 		this.user = user;
 	}
 
-	public String getApplicationId() {
-		return applicationId;
+	public String getApplication_id() {
+		return application_id;
 	}
 
-	public void setApplicationId(String applicationId) {
-		this.applicationId = applicationId;
+	public void setApplication_id(String application_id) {
+		this.application_id = application_id;
 	}
-	
-	
+
 }

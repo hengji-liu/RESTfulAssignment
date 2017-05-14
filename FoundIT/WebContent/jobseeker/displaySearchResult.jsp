@@ -6,13 +6,10 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset==UTF-8">
-<title>Manage current job postings</title>
+<title>Job postings search results</title>
 </head>
-<ul>
-	<li><a href="manager?method=gotoManagePosting&archived=0">Show
-			active job posting</a></li>
-	<li><a href="manager/home_manager.jsp">Go back to home</a></li>
-</ul>
+
+<a href="jobseeker/home_jobseeker.jsp">Go back to home</a>
 <body>
 	<table border="1">
 		<tr>
@@ -21,8 +18,8 @@
 		</tr>
 		<c:forEach var="posting" items="${list}">
             <tr>
-				<td>${posting.companyName},${posting.positionType},
-					${posting.location }, ${posting.descriptions }</td>
+				<td><a href="jobseeker?method=gotoPostingDetails&id=${posting.jobId}">${posting.companyName},${posting.positionType},
+					${posting.location }, ${posting.descriptions }</a></td>
 				<td>${posting.status}</td>
 			</tr>
 		</c:forEach>

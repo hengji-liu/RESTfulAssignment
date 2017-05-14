@@ -83,7 +83,7 @@ public class Utils {
 			break;
 		}
 	}
-	
+
 	public static void trasnfromApplicationStatus(Application a) {
 		switch (Integer.parseInt(a.getStatus())) {
 		case ApplicationsStatus.ACCEPTED:
@@ -102,7 +102,7 @@ public class Utils {
 			break;
 		}
 	}
-	
+
 	public static void trasnfromReviewDecision(Review r) {
 		switch (Integer.parseInt(r.getDecision())) {
 		case ReviewDecisoin.NOT_RECOMMEND:

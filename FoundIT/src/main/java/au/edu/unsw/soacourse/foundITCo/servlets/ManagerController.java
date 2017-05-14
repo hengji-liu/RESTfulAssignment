@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -22,12 +21,14 @@ import javax.ws.rs.core.Response;
 import com.j256.ormlite.dao.Dao;
 
 import au.edu.unsw.soacourse.foundITCo.DBUtil;
+import au.edu.unsw.soacourse.foundITCo.Keys;
 import au.edu.unsw.soacourse.foundITCo.Utils;
-import au.edu.unsw.soacourse.foundITCo.dao.PostingsDao;
-import au.edu.unsw.soacourse.foundITCo.beans.Keys;
+import au.edu.unsw.soacourse.foundITCo.beans.Application;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
 import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
+import au.edu.unsw.soacourse.foundITCo.dao.ApplicationsDao;
+import au.edu.unsw.soacourse.foundITCo.dao.PostingsDao;
 
 @WebServlet("/manager")
 public class ManagerController extends HttpServlet {
@@ -35,6 +36,7 @@ public class ManagerController extends HttpServlet {
 	private Dao<UserPosting, String> userPostingDao = DBUtil.getUserPostingDao();
 	private Dao<User, String> userDao = DBUtil.getUserDao();
 	private PostingsDao postingsDao = new PostingsDao(Keys.SHORT_VAL_MANAGER);
+	private ApplicationsDao applicationsDao = new ApplicationsDao(Keys.SHORT_VAL_MANAGER);
 
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -78,14 +80,11 @@ public class ManagerController extends HttpServlet {
 		}
 		List<Posting> list = new ArrayList<>();
 		if (null != ups && 0 != ups.size()) {
-			// gather ids
-			List<String> ids = new ArrayList<>();
 			for (Iterator iterator = ups.iterator(); iterator.hasNext();) {
 				UserPosting up = (UserPosting) iterator.next();
-				ids.add(up.getPosting_id());
+				Posting p = postingsDao.findPostingById(up.getPosting_id());
+				list.add(p);
 			}
-			// get postings from jobservices
-			list = postingsDao.findPostingById(ids);
 		}
 		request.setAttribute("list", list);
 		if ("0".equals(archived)) {
@@ -97,7 +96,7 @@ public class ManagerController extends HttpServlet {
 
 	private void gotoAssignReviewers(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		User userInSession = Utils.getLoginedUser(request.getSession());
+		String pid = request.getParameter("pid");
 		// get all reviewers
 		List<User> reviewers = null;
 		try {
@@ -105,9 +104,34 @@ public class ManagerController extends HttpServlet {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		System.out.println(reviewers.size());
 		request.setAttribute("reviewers", reviewers);
+		request.setAttribute("pid", pid);
 		request.getRequestDispatcher("manager/assignReviewers.jsp").forward(request, response);
+	}
+
+	private void gotoCreateInterviewPoll(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		// TODO
+	}
+
+	private void gotoPostingDetails(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String pid = request.getParameter("pid");
+		Posting posting = postingsDao.findPostingById(pid);
+		List<Application> applications = applicationsDao.findApplicationByPostingId(pid);
+		int size = applications.size();
+		request.setAttribute("size", size); // decides if can be updated
+		request.setAttribute("applications", applications);
+		request.setAttribute("posting", posting);
+		request.getRequestDispatcher("manager/postingDetails.jsp").forward(request, response);
+	}
+
+	private void gotoUpdatePosting(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String pid = request.getParameter("pid");
+		Posting posting = postingsDao.findPostingById(pid);
+		request.setAttribute("posting", posting);
+		request.getRequestDispatcher("manager/updatePosting.jsp").forward(request, response);
 	}
 
 	private void createPosting(HttpServletRequest request, HttpServletResponse response)
@@ -131,7 +155,7 @@ public class ManagerController extends HttpServlet {
 		int httpStatus = serviceResponse.getStatus();
 		if (201 != httpStatus) {
 			request.setAttribute("errorCode", httpStatus);
-			request.getRequestDispatcher("manager/fail.jsp").forward(request, response);
+			request.getRequestDispatcher("fail.jsp").forward(request, response);
 		} else {
 			String createdURL = serviceResponse.getLocation().toString();
 			String createdId = createdURL.substring(createdURL.lastIndexOf('/') + 1, createdURL.length());
@@ -151,6 +175,34 @@ public class ManagerController extends HttpServlet {
 		}
 	}
 
+	private void updatePosting(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		// get paras
+		String pid = request.getParameter("pid");
+		String companyName = request.getParameter("companyName");
+		String salaryRate = request.getParameter("salaryRate");
+		String positionType = request.getParameter("positionType");
+		String location = request.getParameter("location");
+		String descriptions = request.getParameter("descriptions");
+		// assembly pojo
+		Posting posting = new Posting();
+		posting.setCompanyName(companyName);
+		posting.setSalaryRate(salaryRate);
+		posting.setPositionType(positionType);
+		posting.setLocation(location);
+		posting.setDescriptions(descriptions);
+		// post to job services
+		Response serviceResponse = postingsDao.updatePosting(pid, posting);
+		// deal with response
+		int httpStatus = serviceResponse.getStatus();
+		if (204 != httpStatus) {
+			request.setAttribute("errorCode", httpStatus);
+			request.getRequestDispatcher("fail.jsp").forward(request, response);
+		} else {
+			request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0").forward(request, response);
+		}
+	}
+
 	private void changeStatus(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		String pid = request.getParameter("pid");
@@ -159,21 +211,61 @@ public class ManagerController extends HttpServlet {
 		int serviceStatus = serviceResponse.getStatus();
 		if (204 != serviceStatus) {
 			request.setAttribute("errorCode", serviceStatus);
-			request.getRequestDispatcher("manager/fail.jsp").forward(request, response);
+			request.getRequestDispatcher("fail.jsp").forward(request, response);
 		} else {
-			RequestDispatcher dispatcher = null;
 			switch (newStatus) {
-			case "in_review": // TODO
-				dispatcher = request.getRequestDispatcher("manager?method=gotoAssignReviewers");
+			case "in_review":
+				// save userPosting relationship for reviewers
+				String[] selectedReviewers = request.getParameterValues("selectedReviewers");
+				for (int j = 0; j < selectedReviewers.length; j++) {
+					UserPosting up = new UserPosting();
+					up.setId(UUID.randomUUID().toString());
+					try {
+						User reviewer = userDao.queryForId(selectedReviewers[j]);
+						up.setUser(reviewer);
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+					up.setPosting_id(pid);
+					try {
+						userPostingDao.create(up);
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+				// change application status to in_review
+				List<Application> applications = applicationsDao.findApplicationByPostingId(pid);
+				for (Iterator iterator = applications.iterator(); iterator.hasNext();) {
+					Application application = (Application) iterator.next();
+					applicationsDao.updateStatus(application.getAppId(), newStatus);
+				}
 				break;
 			case "sent_invitations": // TODO
-				dispatcher = request.getRequestDispatcher("manager?method=gotoSetInterviewTime");
 				break;
 			default:
-				dispatcher = request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0");
 				break;
 			}
-			dispatcher.forward(request, response);
+			request.getRequestDispatcher("manager?method=gotoManagePosting&archived=0").forward(request, response);
 		}
 	}
+
+	private void archive(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String pid = request.getParameter("pid");
+		User userInSession = Utils.getLoginedUser(request.getSession());
+		UserPosting up = new UserPosting();
+		up.setUser(userInSession);
+		up.setPosting_id(pid);
+		try {
+			List<UserPosting> result = userPostingDao.queryForMatching(up);
+			UserPosting resultUp = result.get(0);
+			resultUp.setArchived(1);
+			userPostingDao.update(resultUp);
+			request.getRequestDispatcher("manager?method=gotoManagePosting&archived=1").forward(request, response);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+	}
+
 }

@@ -13,15 +13,15 @@ import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
 import au.edu.unsw.soacourse.foundITCo.Keys;
 import au.edu.unsw.soacourse.foundITCo.Utils;
-import au.edu.unsw.soacourse.foundITCo.beans.Posting;
+import au.edu.unsw.soacourse.foundITCo.beans.Application;
 
-public class PostingsDao {
+public class ApplicationsDao {
 
 	// TODO change ip when deploy to docker
 	private static final String JOB_URL = "http://localhost:8080/JobServices";
 	private String shortKey;
 
-	public PostingsDao(String shortKey) {
+	public ApplicationsDao(String shortKey) {
 		super();
 		this.shortKey = shortKey;
 	}
@@ -31,63 +31,62 @@ public class PostingsDao {
 		client.header(Keys.SHORT_KEY, shortKey);
 	}
 
-	public Posting findPostingById(String id) {
+	public List<Application> findApplicationByPostingId(String id) {
+		List<Application> list = new ArrayList<>();
+		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
+		client.path("/postings/" + id + "/applications");
+		addKeys(client);
+		list.addAll(client.getCollection(Application.class));
+		for (Iterator<?> iterator = list.iterator(); iterator.hasNext();) {
+			Application application = (Application) iterator.next();
+			System.out.println(application.getAppId());
+		}
+		return list;
+	}
+
+	public Application findApplicationById(String id) {
 		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
 		client.back(true);
-		client.path("/postings/" + id);
+		client.path("/applications/" + id);
 		addKeys(client);
 		try {
-			Posting p = client.get(Posting.class);
-			Utils.trasnfromPostingStatus(p);
-			return p;
+			Application a = client.get(Application.class);
+			Utils.trasnfromApplicationStatus(a);
+			return a;
 		} catch (Exception e) {
 			// TODO
-			System.out.println(" this posting id is not in the db of jobservices");
+			System.out.println(" this application id is not in the db of jobservices");
 		}
 		return null;
 	}
 
-	public Response createPosting(Posting posting) {
+	public Response createApplication(Application application) {
 		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
-		client.path("/postings");
+		client.path("/applications");
 		client.type(MediaType.APPLICATION_JSON);
 		addKeys(client);
-		client.post(posting);
+		client.post(application);
 		Response serviceResponse = client.getResponse();
 		return serviceResponse;
 	}
 
-	public Response updateStatus(String pid, String newStatus) {
+	public Response updateStatus(String aid, String newStatus) {
 		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
-		client.path("/postings/" + newStatus + "/" + pid);
+		client.path("/applications/" + newStatus + "/" + aid);
 		addKeys(client);
 		client.put(null);
 		Response serviceResponse = client.getResponse();
 		return serviceResponse;
 	}
 
-	public List<Posting> search(String keyword, String status) {
-		List<Posting> list = new ArrayList<>();
+	public Response updateApplication(String id, Application application) {
 		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
-		client.path("/postings").query("keyword", keyword).query("status", status);
-		addKeys(client);
-		list.addAll(client.getCollection(Posting.class));
-		for (Iterator<?> iterator = list.iterator(); iterator.hasNext();) {
-			Posting posting = (Posting) iterator.next();
-			Utils.trasnfromPostingStatus(posting);
-		}
-		return list;
-	}
-
-	public Response updatePosting(String id, Posting posting) {
-		WebClient client = WebClient.create(JOB_URL, Arrays.asList(new JacksonJsonProvider()));
-		client.path("/postings/" + id);
+		client.path("/applications/" + id);
 		client.type(MediaType.APPLICATION_JSON);
 		addKeys(client);
-		client.put(posting);
+		client.put(application);
 		Response serviceResponse = client.getResponse();
 		return serviceResponse;
 	}
 
 }
-
