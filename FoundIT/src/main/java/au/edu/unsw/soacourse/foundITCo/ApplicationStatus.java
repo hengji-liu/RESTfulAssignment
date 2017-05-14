@@ -1,4 +1,4 @@
-package au.edu.unsw.soacourse.foundITCo.beans;
+package au.edu.unsw.soacourse.foundITCo;
 
 public class ApplicationStatus {
 	public static final int RECEIVED = 0;

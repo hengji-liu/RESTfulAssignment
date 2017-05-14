@@ -6,9 +6,15 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset==UTF-8">
-<title>Manage current job postings</title>
+<title>Manage my application</title>
 </head>
-<a href="jobseeker?method=gotoManageApplication&archived=0">Show active job posting</a>
+
+
+<ul>
+	<li><a href="jobseeker?method=gotoManageApplication&archived=0">Show
+			active job posting</a></li>
+	<li><a href="jobseeker/home_jobseeker.jsp">Go back to home</a></li>
+</ul>
 <body>
 	<table border="1">
 		<tr>

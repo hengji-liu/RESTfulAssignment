@@ -6,7 +6,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset==UTF-8">
-<title>Manage current job postings</title>
+<title>Job postings Details</title>
 </head>
 <a href="jobseeker?method=gotoApply&id=${posting.jobId }">Apply for this job</a>
 <body>

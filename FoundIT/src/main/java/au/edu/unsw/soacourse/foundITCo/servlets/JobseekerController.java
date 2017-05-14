@@ -21,15 +21,15 @@ import javax.ws.rs.core.Response;
 import com.j256.ormlite.dao.Dao;
 
 import au.edu.unsw.soacourse.foundITCo.DBUtil;
+import au.edu.unsw.soacourse.foundITCo.Keys;
 import au.edu.unsw.soacourse.foundITCo.Utils;
-import au.edu.unsw.soacourse.foundITCo.Dao.ApplicationsDao;
-import au.edu.unsw.soacourse.foundITCo.Dao.PostingsDao;
 import au.edu.unsw.soacourse.foundITCo.beans.Application;
-import au.edu.unsw.soacourse.foundITCo.beans.Keys;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
 import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
 import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
+import au.edu.unsw.soacourse.foundITCo.dao.ApplicationsDao;
+import au.edu.unsw.soacourse.foundITCo.dao.PostingsDao;
 
 @WebServlet("/jobseeker")
 public class JobseekerController extends HttpServlet {

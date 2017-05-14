@@ -6,7 +6,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset==UTF-8">
-<title>Manage current job postings</title>
+<title>Set interview time</title>
 </head>
 <body>
 	<form

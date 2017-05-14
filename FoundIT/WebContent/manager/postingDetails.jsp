@@ -31,7 +31,7 @@
 			<td>${posting.descriptions }</td>
 		</tr>
 	</table>
-
+	<br/>
 		<c:choose>
 			<c:when test="${size == 0}">
 				<a href="manager?method=gotoUpdatePosting&pid=${posting.jobId }">Click
@@ -44,8 +44,10 @@
 					<th>Cover letter</th>
 				</tr>
 					<c:forEach var="app" items="${applications}">
+					<tr>
 						<td>${app.candidateDetails }</td>
 						<td>${app.coverLetter }</td>
+					</tr>
 					</c:forEach>
 				</table>
 			</c:otherwise>
