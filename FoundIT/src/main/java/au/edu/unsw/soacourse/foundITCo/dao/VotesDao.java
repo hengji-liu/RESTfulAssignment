@@ -27,22 +27,6 @@ public class VotesDao {
 		client.header(Keys.SHORT_KEY, shortKey);
 	}
 
-	// public Poll findPollById(String id) {
-	// WebClient client = WebClient.create(POLL_URL, Arrays.asList(new
-	// JacksonJsonProvider()));
-	// client.back(true);
-	// client.path("/polls/" + id);
-	// addKeys(client);
-	// try {
-	// Poll p = client.get(Poll.class);
-	// return p;
-	// } catch (Exception e) {
-	// // TODO
-	// System.out.println(" this poll id is not in the db of jobservices");
-	// }
-	// return null;
-	// }
-
 	public Response createVote(String pollId, String participantName, String chosenOption) {
 		WebClient client = WebClient.create(POLL_URL, Arrays.asList(new JacksonJsonProvider()));
 		client.path("/polls/" + pollId + "/votes");

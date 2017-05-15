@@ -12,7 +12,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -74,7 +73,7 @@ public class ReviewServices {
 	@Path("applications/{appId}/reviews")
 	@Produces(MediaType.APPLICATION_JSON)
 	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
-	public Response getReviewByApp(@HeaderParam("accept") String type, @QueryParam("appId") String appId) {
+	public Response getReviewByApp(@HeaderParam("accept") String type, @PathParam("appId") String appId) {
 		// validation, appId is an valid int
 		if (null != appId && !"".equals(appId)) {
 			try {

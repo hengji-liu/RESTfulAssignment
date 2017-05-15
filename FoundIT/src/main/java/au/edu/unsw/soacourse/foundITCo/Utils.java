@@ -7,6 +7,7 @@ import javax.servlet.http.HttpSession;
 
 import au.edu.unsw.soacourse.foundITCo.beans.Application;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
+import au.edu.unsw.soacourse.foundITCo.beans.Review;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
 
 public class Utils {
@@ -97,6 +98,19 @@ public class Utils {
 			break;
 		case ApplicationStatus.REJECTED:
 			a.setStatus("Rejected");
+			break;
+		default:
+			break;
+		}
+	}
+
+	public static void trasnfromReviewDecision(Review r) {
+		switch (Integer.parseInt(r.getDecision())) {
+		case ReviewDecisoin.RECOMMEND:
+			r.setDecision("Recommended");
+			break;
+		case ReviewDecisoin.NOT_RECOMMEND:
+			r.setDecision("Not recommended");
 			break;
 		default:
 			break;

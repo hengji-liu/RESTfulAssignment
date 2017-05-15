@@ -25,13 +25,18 @@ import au.edu.unsw.soacourse.foundITCo.DBUtil;
 import au.edu.unsw.soacourse.foundITCo.Keys;
 import au.edu.unsw.soacourse.foundITCo.Utils;
 import au.edu.unsw.soacourse.foundITCo.beans.Application;
+import au.edu.unsw.soacourse.foundITCo.beans.Poll;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
+import au.edu.unsw.soacourse.foundITCo.beans.Review;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
 import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
 import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
+import au.edu.unsw.soacourse.foundITCo.beans.Vote;
 import au.edu.unsw.soacourse.foundITCo.dao.ApplicationsDao;
 import au.edu.unsw.soacourse.foundITCo.dao.PollsDao;
 import au.edu.unsw.soacourse.foundITCo.dao.PostingsDao;
+import au.edu.unsw.soacourse.foundITCo.dao.ReviewsDao;
+import au.edu.unsw.soacourse.foundITCo.dao.VotesDao;
 
 @WebServlet("/manager")
 public class ManagerController extends HttpServlet {
@@ -41,6 +46,7 @@ public class ManagerController extends HttpServlet {
 	private Dao<UserApplication, String> userApplicationDao = DBUtil.getUserApplicationDao();
 	private PostingsDao postingsDao = new PostingsDao(Keys.SHORT_VAL_MANAGER);
 	private ApplicationsDao applicationsDao = new ApplicationsDao(Keys.SHORT_VAL_MANAGER);
+	private ReviewsDao reviewsDao = new ReviewsDao(Keys.SHORT_VAL_MANAGER);
 	private PollsDao pollsDao = new PollsDao(Keys.SHORT_VAL_MANAGER);
 
 	protected void service(HttpServletRequest request, HttpServletResponse response)
@@ -62,11 +68,6 @@ public class ManagerController extends HttpServlet {
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			e.printStackTrace();
 		}
-	}
-
-	private void gotoCreatePosting(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		request.getRequestDispatcher("manager/createPosting.jsp").forward(request, response);
 	}
 
 	private void gotoManagePosting(HttpServletRequest request, HttpServletResponse response)
@@ -92,33 +93,8 @@ public class ManagerController extends HttpServlet {
 			}
 		}
 		request.setAttribute("list", list);
-		if ("0".equals(archived)) {
-			request.getRequestDispatcher("manager/managePosting.jsp").forward(request, response);
-		} else {
-			request.getRequestDispatcher("manager/manageArchived.jsp").forward(request, response);
-		}
-	}
-
-	private void gotoAssignReviewers(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		String pid = request.getParameter("pid");
-		// get all reviewers
-		List<User> reviewers = null;
-		try {
-			reviewers = userDao.queryForEq("userType", "hiringteam");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		request.setAttribute("reviewers", reviewers);
-		request.setAttribute("pid", pid);
-		request.getRequestDispatcher("manager/assignReviewers.jsp").forward(request, response);
-	}
-
-	private void gotoCreateInterviewPoll(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		String pid = (String) request.getParameter("pid");
-		request.setAttribute("pid", pid);
-		request.getRequestDispatcher("manager/createInterviewPoll.jsp").forward(request, response);
+		request.setAttribute("archived", archived);
+		request.getRequestDispatcher("manager/managePosting.jsp").forward(request, response);
 	}
 
 	private void gotoPostingDetails(HttpServletRequest request, HttpServletResponse response)
@@ -130,19 +106,67 @@ public class ManagerController extends HttpServlet {
 			Application application = (Application) iterator.next();
 			Utils.trasnfromApplicationStatus(application);
 		}
+		switch (posting.getStatus()) {
+		case "Open":
+			// list reviewers for assginment
+			List<User> reviewers = null;
+			try {
+				reviewers = userDao.queryForEq("userType", "hiringteam");
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			request.setAttribute("reviewers", reviewers);
+			break;
+		case "Processed":
+			// change jobid to meaningful review info
+			for (Iterator<Application> iterator = applications.iterator(); iterator.hasNext();) {
+				Application application = (Application) iterator.next();
+				String aid = application.getAppId();
+				List<Review> reviews = reviewsDao.findReviewByAppId(aid);
+				Utils.trasnfromReviewDecision(reviews.get(0));
+				Utils.trasnfromReviewDecision(reviews.get(1));
+				application.setJobId(reviews.get(1).getDecision() + ": " + reviews.get(0).getComments() + "<br/>"
+						+ reviews.get(1).getDecision() + ": " + reviews.get(1).getComments());
+			}
+			break;
+		case "Sent Invitations":
+			// get change jobid to meaningful chosen interview time
+			for (Iterator<Application> iterator = applications.iterator(); iterator.hasNext();) {
+				Application application = (Application) iterator.next();
+				String aid = application.getAppId();
+				List<Review> reviews = reviewsDao.findReviewByAppId(aid);
+				Utils.trasnfromReviewDecision(reviews.get(0));
+				Utils.trasnfromReviewDecision(reviews.get(1));
+				String reviewStr = reviews.get(1).getDecision() + ": " + reviews.get(0).getComments() + "<br/>"
+						+ reviews.get(1).getDecision() + ": " + reviews.get(1).getComments();
+				if ("Accepted".equals(application.getStatus())) {
+					try {
+						List<UserApplication> ua = userApplicationDao.queryForEq("application_id",
+								application.getAppId());
+						String pollId = ua.get(0).getPoll_id();
+						Poll poll = pollsDao.findPollById(pollId);
+						List<Vote> votes = poll.getVotes();
+						if (votes.size() > 0) { // if voted
+							reviewStr += "<br/>" + votes.get(0).getChosenOption()
+									+ " is the applicant's chosen interview time.";
+						} else {
+							reviewStr += "<br/>This applicant has not responded to the interview time poll.";
+						}
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+				application.setJobId(reviewStr);
+			}
+		default:
+			break;
+		}
 		int size = applications.size();
 		request.setAttribute("size", size); // decides if can be updated
+
 		request.setAttribute("applications", applications);
 		request.setAttribute("posting", posting);
 		request.getRequestDispatcher("manager/postingDetails.jsp").forward(request, response);
-	}
-
-	private void gotoUpdatePosting(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		String pid = request.getParameter("pid");
-		Posting posting = postingsDao.findPostingById(pid);
-		request.setAttribute("posting", posting);
-		request.getRequestDispatcher("manager/updatePosting.jsp").forward(request, response);
 	}
 
 	private void createPosting(HttpServletRequest request, HttpServletResponse response)
@@ -267,7 +291,8 @@ public class ManagerController extends HttpServlet {
 						String createdId = createdURL.substring(createdURL.lastIndexOf('/') + 1, createdURL.length());
 						// link poll_id with its application
 						try {
-							UserApplication ua = userApplicationDao.queryForEq("appliaction_id", application).get(0);
+							UserApplication ua = userApplicationDao.queryForEq("application_id", application.getAppId())
+									.get(0);
 							ua.setPoll_id(createdId);
 							userApplicationDao.update(ua);
 						} catch (SQLException e) {
