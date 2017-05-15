@@ -28,7 +28,6 @@ import au.edu.unsw.soacourse.foundITCo.beans.Poll;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
 import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
-import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 import au.edu.unsw.soacourse.foundITCo.dao.ApplicationsDao;
 import au.edu.unsw.soacourse.foundITCo.dao.PollsDao;
 import au.edu.unsw.soacourse.foundITCo.dao.PostingsDao;
@@ -37,7 +36,6 @@ import au.edu.unsw.soacourse.foundITCo.dao.VotesDao;
 @WebServlet("/jobseeker")
 public class JobseekerController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	private Dao<UserPosting, String> userPostingDao = DBUtil.getUserPostingDao();
 	private Dao<UserApplication, String> userApplicationDao = DBUtil.getUserApplicationDao();
 	private PostingsDao postingsDao = new PostingsDao(Keys.SHORT_VAL_CANDIDATE);
 	private ApplicationsDao applicationsDao = new ApplicationsDao(Keys.SHORT_VAL_CANDIDATE);
@@ -79,11 +77,11 @@ public class JobseekerController extends HttpServlet {
 		String pid = request.getParameter("id");
 		Posting p = postingsDao.findPostingById(pid);
 		// check no duplicate applying
-		UserPosting up = new UserPosting();
-		up.setPosting_id(pid);
-		up.setUser(userInSession);
 		try {
-			List<UserPosting> list = userPostingDao.queryForMatching(up);
+			Map<String, Object> queryParas = new HashMap<>();
+			queryParas.put("user_id", userInSession);
+			queryParas.put("posting_id", pid);
+			List<UserApplication> list = userApplicationDao.queryForFieldValues(queryParas);
 			if (list.size() > 0) {
 				request.setAttribute("applied", "applied");
 			}
@@ -135,13 +133,8 @@ public class JobseekerController extends HttpServlet {
 		User userInSession = Utils.getLoginedUser(request.getSession());
 		switch (a.getStatus()) {
 		case "Received": // show posting and enable update
-			try {
-				String postingId = userPostingDao.queryForEq("user_id", userInSession).get(0).getPosting_id();
-				Posting posting = postingsDao.findPostingById(postingId);
-				request.setAttribute("posting", posting);
-			} catch (SQLException e1) {
-				e1.printStackTrace();
-			}
+			Posting posting = postingsDao.findPostingById(a.getJobId());
+			request.setAttribute("posting", posting);
 			break;
 		case "Accepted": // vote for poll
 			try {
@@ -194,14 +187,10 @@ public class JobseekerController extends HttpServlet {
 				UserApplication ua = new UserApplication();
 				ua.setId(UUID.randomUUID().toString());
 				ua.setApplication_id(createdId);
+				ua.setPosting_id(pid);
 				ua.setUser(userInSession);
+				ua.setArchived(0);
 				userApplicationDao.create(ua);
-				// insert user-posting into local db
-				UserPosting up = new UserPosting();
-				up.setId(UUID.randomUUID().toString());
-				up.setPosting_id(pid);
-				up.setUser(userInSession);
-				userPostingDao.create(up);
 				request.getRequestDispatcher("jobseeker?method=gotoManageApplication&archived=0").forward(request,
 						response);
 			}
