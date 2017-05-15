@@ -24,6 +24,8 @@ import au.edu.unsw.soacourse.foundITCo.beans.User;
 @WebFilter(urlPatterns = { "/manager", "/jobseeker", "/hiringteam" }, filterName = "sessionFilter")
 public class SessionFilter implements Filter {
 	private static final String HIRING_TEAM_REQUEST_URI = "/FoundITCo/hiringteam";
+	private static final String JOBSEEKER_REQUEST_URI = "/FoundITCo/jobseeker";
+	private static final String MANAGER_REQUEST_URI = "/FoundITCo/manager";
 
     /**
      * Default constructor. 
@@ -78,6 +80,12 @@ public class SessionFilter implements Filter {
 			session.setAttribute("COOKIE_CHECKED", "CHECKED");
 			if (req.getRequestURI().equalsIgnoreCase(HIRING_TEAM_REQUEST_URI)) {
 				if (userInSession.getUserType().equals("hiringteam")) {
+					chain.doFilter(request, response);
+				} else {
+					res.sendError(HttpServletResponse.SC_NOT_FOUND);
+				}
+			} if (req.getRequestURI().equalsIgnoreCase(JOBSEEKER_REQUEST_URI)) {
+				if (userInSession.getUserType().equals("jobseeker")) {
 					chain.doFilter(request, response);
 				} else {
 					res.sendError(HttpServletResponse.SC_NOT_FOUND);

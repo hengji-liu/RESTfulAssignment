@@ -48,7 +48,6 @@ public class HiringTeamController extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
 		HttpSession session = request.getSession();
 		User user = Utils.getLoginedUser(session);
 		
@@ -67,7 +66,13 @@ public class HiringTeamController extends HttpServlet {
 			}
 		}
 		
-		if (request.getQueryString().split("=")[0].equalsIgnoreCase("applicants")) {
+		String s = request.getRequestURI();
+		String u = request.getQueryString();
+		
+		if (request.getRequestURI().equals("/FoundITCo/hiringteam") && request.getQueryString() == null) {
+			RequestDispatcher dispatcher = request.getRequestDispatcher("hiringteam/home_hiringteam.jsp");
+			dispatcher.forward(request, response);
+		} else if (request.getQueryString().split("=")[0].equalsIgnoreCase("applicants")) {
 			
 			List<Application> applications = new ArrayList<Application>();
 			String jobId = request.getParameter("applicants");
@@ -103,7 +108,8 @@ public class HiringTeamController extends HttpServlet {
 
 			RequestDispatcher dispatcher = request.getRequestDispatcher("hiringteam/applicants.jsp");
 			dispatcher.forward(request, response);
-			
+
+			DBUtil.closeConnection();
 		} else if (request.getQueryString().split("=")[0].equalsIgnoreCase("review")) {
 			List<UserProfile> userProfiles = new ArrayList<UserProfile>();
 			try {
@@ -139,6 +145,8 @@ public class HiringTeamController extends HttpServlet {
 			
 			RequestDispatcher dispatcher = request.getRequestDispatcher("hiringteam/review.jsp");
 			dispatcher.forward(request, response);
+
+			DBUtil.closeConnection();
 		} else if (request.getQueryString().equalsIgnoreCase("postings")) {
 			List<UserPosting> userPostings = new ArrayList<UserPosting>();
 			try {
@@ -158,9 +166,9 @@ public class HiringTeamController extends HttpServlet {
 
 			RequestDispatcher dispatcher = request.getRequestDispatcher("hiringteam/postings.jsp");
 			dispatcher.forward(request, response);
+
+			DBUtil.closeConnection();
 		}
-		
-		DBUtil.closeConnection();
 		
 	}
 	

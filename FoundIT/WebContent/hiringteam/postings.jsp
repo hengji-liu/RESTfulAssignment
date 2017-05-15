@@ -11,6 +11,10 @@
 <body>
 
 	<h2>Postings</h2>
+	
+	<ul>
+		<li><a href="hiringteam">Home</a></li>
+	</ul>
 
 	<table border="1">
 		<tr>

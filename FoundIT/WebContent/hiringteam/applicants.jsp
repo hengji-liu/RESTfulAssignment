@@ -11,6 +11,7 @@
 <body>
 	<h2>Applicants</h2>
 	<ul>
+		<li><a href="hiringteam">Home</a></li>
 		<li><a href="hiringteam?postings">Back</a></li>
 	</ul>
 	<table border="1">
