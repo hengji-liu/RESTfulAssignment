@@ -36,7 +36,6 @@ import au.edu.unsw.soacourse.foundITCo.dao.ApplicationsDao;
 import au.edu.unsw.soacourse.foundITCo.dao.PollsDao;
 import au.edu.unsw.soacourse.foundITCo.dao.PostingsDao;
 import au.edu.unsw.soacourse.foundITCo.dao.ReviewsDao;
-import au.edu.unsw.soacourse.foundITCo.dao.VotesDao;
 
 @WebServlet("/manager")
 public class ManagerController extends HttpServlet {
