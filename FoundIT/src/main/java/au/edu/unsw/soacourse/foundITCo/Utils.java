@@ -9,6 +9,7 @@ import au.edu.unsw.soacourse.foundITCo.beans.Application;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.Review;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
+import au.edu.unsw.soacourse.foundITCo.dao.ReviewDecision;
 
 public class Utils {
 	private static final String ATT_NAME_USER_NAME = "ATTRIBUTE_FOR_STORE_USER_NAME_IN_COOKIE";

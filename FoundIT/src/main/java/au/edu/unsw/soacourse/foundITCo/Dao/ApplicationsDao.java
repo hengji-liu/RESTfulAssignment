@@ -2,7 +2,6 @@ package au.edu.unsw.soacourse.foundITCo.dao;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
@@ -37,10 +36,6 @@ public class ApplicationsDao {
 		client.path("/postings/" + id + "/applications");
 		addKeys(client);
 		list.addAll(client.getCollection(Application.class));
-		for (Iterator<?> iterator = list.iterator(); iterator.hasNext();) {
-			Application application = (Application) iterator.next();
-			System.out.println(application.getAppId());
-		}
 		return list;
 	}
 

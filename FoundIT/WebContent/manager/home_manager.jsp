@@ -15,9 +15,37 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 
     <ul>
         <li><a href="signout">Sign out</a></li>
-        <li><a href="manager?method=gotoCreatePosting">Create a new job posting</a></li>
         <li><a href="manager?method=gotoManagePosting&archived=0">Manager my job postings</a></li>
      </ul>
+     <br/>
+	<form action="manager?method=createPosting" method="post">
+		<table>
+			<tr>
+				<td>Company Name</td>
+				<td><input type="text" name="companyName"></td>
+			</tr>
+			<tr>
+				<td>Salary Rate</td>
+				<td><input type="text" name="salaryRate"></td>
+			</tr>
+			<tr>
+				<td>Position Type</td>
+				<td><input type="text" name="positionType"></td>
+			</tr>
+			<tr>
+				<td>Location</td>
+				<td><input type="text" name="location"></td>
+			</tr>
+			<tr>
+				<td>Descriptions</td>
+				<td><input type="text" name="descriptions"></td>
+			</tr>
+			<tr>
+				<td>Click to create</td>
+				<td><input type="submit" value="Create"></td>
+			</tr>
+		</table>
+	</form>
 
 	
 </body>

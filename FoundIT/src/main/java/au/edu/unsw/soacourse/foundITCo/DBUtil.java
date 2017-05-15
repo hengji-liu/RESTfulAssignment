@@ -3,17 +3,17 @@ package au.edu.unsw.soacourse.foundITCo;
 import java.io.IOException;
 import java.sql.SQLException;
 
-import au.edu.unsw.soacourse.foundITCo.beans.User;
-import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
-import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
-import au.edu.unsw.soacourse.foundITCo.beans.UserProfile;
-import au.edu.unsw.soacourse.foundITCo.beans.UserReview;
-
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
+
+import au.edu.unsw.soacourse.foundITCo.beans.User;
+import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
+import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
+import au.edu.unsw.soacourse.foundITCo.beans.UserProfile;
+import au.edu.unsw.soacourse.foundITCo.beans.UserReview;
 
 public class DBUtil {
 	private static final String DATABASE_URL = "jdbc:sqlite:"
