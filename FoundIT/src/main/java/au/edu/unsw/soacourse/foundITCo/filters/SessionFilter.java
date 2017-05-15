@@ -79,17 +79,17 @@ public class SessionFilter implements Filter {
 		if (userInSession != null) {
 			session.setAttribute("COOKIE_CHECKED", "CHECKED");
 			if (req.getRequestURI().equalsIgnoreCase(HIRING_TEAM_REQUEST_URI)) {
-				if (userInSession.getUserType().equals("hiringteam")) {
+//				if (userInSession.getUserType().equals("hiringteam")) {
+//					chain.doFilter(request, response);
+//				} else {
+//					res.sendError(HttpServletResponse.SC_NOT_FOUND);
+//				}
+//			} if (req.getRequestURI().equalsIgnoreCase(JOBSEEKER_REQUEST_URI)) {
+//				if (userInSession.getUserType().equals("jobseeker")) {
 					chain.doFilter(request, response);
-				} else {
-					res.sendError(HttpServletResponse.SC_NOT_FOUND);
-				}
-			} if (req.getRequestURI().equalsIgnoreCase(JOBSEEKER_REQUEST_URI)) {
-				if (userInSession.getUserType().equals("jobseeker")) {
-					chain.doFilter(request, response);
-				} else {
-					res.sendError(HttpServletResponse.SC_NOT_FOUND);
-				}
+//				} else {
+//					res.sendError(HttpServletResponse.SC_NOT_FOUND);
+//				}
 			} else {
 				chain.doFilter(request, response);
 			}

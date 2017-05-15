@@ -70,7 +70,7 @@
 	<br />
 	
 	<h3>Review</h3>
-	<form method="POST" action='hiringteam?review' name="frmAddUser">
+	<form method="POST" action='hiringteam?review'>
 		<input type="hidden" name="appId" value="<c:out value="${appId}" />" />
 		<input type="hidden" name="jobId" value="<c:out value="${application.jobId}" />" />
 		<input type="hidden" name="reviewId" value="<c:out value="${review.reviewId}" />" />
@@ -98,7 +98,7 @@
 			<tr>
 				<td></td>
 				<td></td>
-				<td><input type="submit" value="Review" /></td>
+				<td><input type="submit" value="submit" /></td>
 			</tr>
 		</table>
 	</form>

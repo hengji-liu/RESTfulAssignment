@@ -66,13 +66,11 @@ public class HiringTeamController extends HttpServlet {
 			}
 		}
 		
-		String s = request.getRequestURI();
-		String u = request.getQueryString();
-		
 		if (request.getRequestURI().equals("/FoundITCo/hiringteam") && request.getQueryString() == null) {
 			RequestDispatcher dispatcher = request.getRequestDispatcher("hiringteam/home_hiringteam.jsp");
 			dispatcher.forward(request, response);
-		} else if (request.getQueryString().split("=")[0].equalsIgnoreCase("applicants")) {
+		} else 
+			if (request.getQueryString().split("=")[0].equalsIgnoreCase("applicants")) {
 			
 			List<Application> applications = new ArrayList<Application>();
 			String jobId = request.getParameter("applicants");
@@ -181,6 +179,13 @@ public class HiringTeamController extends HttpServlet {
 	             request.getServerName() +       // "myhost"
 	             ":" +                           // ":"
 	             request.getServerPort();
+//		String uri = request.getScheme() + "://" +   // "http" + "://
+//	             request.getServerName() +       // "myhost"
+//	             ":" +                           // ":"
+//	             request.getServerPort() +       // "8080"
+//	             request.getRequestURI() +       // "/people"
+//	             "?" +                           // "?"
+//	             request.getQueryString();       // "lastname=Fox&age=30"
 
 		String jobId = request.getParameter("jobId");
 		String appId = request.getParameter("appId");
@@ -191,15 +196,16 @@ public class HiringTeamController extends HttpServlet {
 			review.setDecision(request.getParameter("decision"));
 			review.setReviewerDetails(request.getParameter("details"));
 			review.setAppId(appId);
-			// post to job services
+			
 			Response serviceResponse = null;
 			if (request.getParameter("reviewId") == null || request.getParameter("reviewId").isEmpty())
 				serviceResponse = ReviewDao.createReview(baseUri, Keys.SHORT_VAL_REVIEWER, review);
 			else 
 				serviceResponse = ReviewDao.updateReview(baseUri, Keys.SHORT_VAL_REVIEWER, 
 						request.getParameter("reviewId"), review);
-			// deal with response
+			
 			int httpStatus = serviceResponse.getStatus();
+			
 			if (201 == httpStatus) {
 				String createdURL = serviceResponse.getLocation().toString();
 				String createdId = createdURL.substring(createdURL.lastIndexOf('/') + 1, createdURL.length());
@@ -268,6 +274,7 @@ public class HiringTeamController extends HttpServlet {
 				}
 				
 				response.sendRedirect("hiringteam?applicants=" + request.getParameter("jobId"));
+				
 			} else if (204 == httpStatus) {
 				List<UserPosting> userPostings = new ArrayList<UserPosting>();
 				try {
@@ -313,9 +320,10 @@ public class HiringTeamController extends HttpServlet {
 				}
 				
 				response.sendRedirect("hiringteam?applicants=" + request.getParameter("jobId"));
-			}else {
+			} 
+			else {
 				request.setAttribute("errorCode", httpStatus);
-				request.getRequestDispatcher("hiringteam/fail.jsp").forward(request, response);
+				request.getRequestDispatcher("hiringteam/fail.jsp").forward(request, response);;
 			}
 		}
 	}
