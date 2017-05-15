@@ -3,6 +3,7 @@ package au.edu.unsw.soacourse.foundITCo.servlets;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,16 +19,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 
+import org.springframework.http.converter.feed.AtomFeedHttpMessageConverter;
+
 import com.j256.ormlite.dao.Dao;
 
+import au.edu.unsw.soacourse.foundITCo.ApplicationStatus;
 import au.edu.unsw.soacourse.foundITCo.DBUtil;
 import au.edu.unsw.soacourse.foundITCo.Keys;
 import au.edu.unsw.soacourse.foundITCo.Utils;
+import au.edu.unsw.soacourse.foundITCo.beans.AppPoll;
 import au.edu.unsw.soacourse.foundITCo.beans.Application;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
 import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 import au.edu.unsw.soacourse.foundITCo.dao.ApplicationsDao;
+import au.edu.unsw.soacourse.foundITCo.dao.PollsDao;
 import au.edu.unsw.soacourse.foundITCo.dao.PostingsDao;
 
 @WebServlet("/manager")
@@ -35,8 +41,10 @@ public class ManagerController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Dao<UserPosting, String> userPostingDao = DBUtil.getUserPostingDao();
 	private Dao<User, String> userDao = DBUtil.getUserDao();
+	private Dao<AppPoll, String> appPollDao = DBUtil.getAppPollDao();
 	private PostingsDao postingsDao = new PostingsDao(Keys.SHORT_VAL_MANAGER);
 	private ApplicationsDao applicationsDao = new ApplicationsDao(Keys.SHORT_VAL_MANAGER);
+	private PollsDao pollsDao = new PollsDao(Keys.SHORT_VAL_MANAGER);
 
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -111,7 +119,9 @@ public class ManagerController extends HttpServlet {
 
 	private void gotoCreateInterviewPoll(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		// TODO
+		String pid = (String) request.getParameter("pid");
+		request.setAttribute("pid", pid);
+		request.getRequestDispatcher("manager/createInterviewPoll.jsp").forward(request, response);
 	}
 
 	private void gotoPostingDetails(HttpServletRequest request, HttpServletResponse response)
@@ -240,8 +250,32 @@ public class ManagerController extends HttpServlet {
 					applicationsDao.updateStatus(application.getAppId(), newStatus);
 				}
 				break;
-			case "sent_invitations": // TODO
-				break;
+			case "sent_invitations":
+				String option1 = (String) request.getAttribute("option1");
+				String option2 = (String) request.getAttribute("option2");
+				String option3 = (String) request.getAttribute("option3");
+				String optionsSepBySemicolon = option1 + ";" + option2 + ";" + option3;
+				List<Application> apps = applicationsDao.findApplicationByPostingId(pid);
+				for (Iterator iterator = apps.iterator(); iterator.hasNext();) {
+					Application application = (Application) iterator.next();
+					if (application.getStatus().equals(String.valueOf(ApplicationStatus.ACCEPTED))) {
+						// post to poll services
+						Response pollResponse = pollsDao.createPoll("interview time", "choose one time suits you",
+								"DATE", optionsSepBySemicolon, null, null);
+						String createdURL = pollResponse.getLocation().getPath();
+						String createdId = createdURL.substring(createdURL.lastIndexOf('/') + 1, createdURL.length());
+						// store <appid, poll_id>
+						AppPoll ap = new AppPoll();
+						ap.setId(UUID.randomUUID().toString());
+						ap.setApplication_id(application.getAppId());
+						ap.setPoll_id(createdId);
+						try {
+							appPollDao.create(ap);
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+					}
+				}
 			default:
 				break;
 			}

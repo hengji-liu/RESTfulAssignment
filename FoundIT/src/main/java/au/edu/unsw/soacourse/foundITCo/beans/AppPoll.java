@@ -1,0 +1,51 @@
+package au.edu.unsw.soacourse.foundITCo.beans;
+
+import com.j256.ormlite.field.DatabaseField;
+
+public class AppPoll {
+	@DatabaseField(id = true)
+	private String id;
+	@DatabaseField
+	private String application_id;
+	@DatabaseField
+	private String poll_id;
+	@DatabaseField
+	private int archived; // 0 is not, 1 is archived
+
+	public int getArchived() {
+		return archived;
+	}
+
+	public void setArchived(int archived) {
+		this.archived = archived;
+	}
+
+	public AppPoll() {
+
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getApplication_id() {
+		return application_id;
+	}
+
+	public void setApplication_id(String application_id) {
+		this.application_id = application_id;
+	}
+
+	public String getPoll_id() {
+		return poll_id;
+	}
+
+	public void setPoll_id(String poll_id) {
+		this.poll_id = poll_id;
+	}
+
+}

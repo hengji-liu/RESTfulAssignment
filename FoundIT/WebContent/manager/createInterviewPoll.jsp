@@ -10,19 +10,26 @@
 </head>
 <body>
 	<form
-		action="manager?method=changeStatus&newStatus=in_review&pid=${pid }"
+		action="manager?method=changeStatus&newStatus=sent_invitations&pid=${pid}"
 		method="post">
-		<input type="submit" value="Create">
+		<input type="submit" value="Send invitations">
 		<table border="1">
 			<tr>
-				<th>Reviewer</th>
+				<th></th>
+				<th>Possible dates for applicants to choose from</th>
 			</tr>
-			<c:forEach var="reviewer" items="${reviewers}">
-            <tr>
-					<td><input type="checkbox" name="selectedReviewers"
-						value="${reviewer.email }">${reviewer.email }<br></td>
-				</tr>
-			</c:forEach>
+			<tr>
+				<td>Option 1</td>
+				<td><input type="text" name="option1"></td>
+			</tr>
+			<tr>
+				<td>Option 2</td>
+				<td><input type="text" name="option2"></td>
+			</tr>
+			<tr>
+				<td>Option 3</td>
+				<td><input type="text" name="option3"></td>
+			</tr>
 		</table>
 	</form>
 </body>

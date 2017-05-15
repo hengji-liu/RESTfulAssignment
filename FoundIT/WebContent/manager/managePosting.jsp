@@ -44,7 +44,7 @@
 						<c:when test="${posting.status == 'Processed'}">
 							<a
 								href="manager?method=gotoCreateInterviewPoll&pid=${posting.jobId}">
-								Click to view short-listed candidates</a>
+								Click to create an interview time poll for short-listed candidates</a>
 						</c:when>
 						<c:otherwise>
 							<a href="manager?method=archive&pid=${posting.jobId}"> Click

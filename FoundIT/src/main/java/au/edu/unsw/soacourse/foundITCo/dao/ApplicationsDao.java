@@ -37,10 +37,6 @@ public class ApplicationsDao {
 		client.path("/postings/" + id + "/applications");
 		addKeys(client);
 		list.addAll(client.getCollection(Application.class));
-		for (Iterator<?> iterator = list.iterator(); iterator.hasNext();) {
-			Application application = (Application) iterator.next();
-			System.out.println(application.getAppId());
-		}
 		return list;
 	}
 
