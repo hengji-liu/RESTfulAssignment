@@ -74,7 +74,7 @@ public class ReviewServices {
 	@Path("applications/{appId}/reviews")
 	@Produces(MediaType.APPLICATION_JSON)
 	@RolesAllowed({ Roles.C, Roles.M, Roles.R })
-	public Response getReviewByApp(@HeaderParam("accept") String type, @QueryParam("appId") String appId) {
+	public Response getReviewByApp(@HeaderParam("accept") String type, @PathParam("appId") String appId) {
 		// validation, appId is an valid int
 		if (null != appId && !"".equals(appId)) {
 			try {
@@ -160,7 +160,7 @@ public class ReviewServices {
 		}
 		// validation, rId in payload must be null or empty
 		String rIdPayload = obj.getReviewId();
-		if (null != rIdPayload || !"".equals(rIdPayload))
+		if (null != rIdPayload)
 			return Response.status(Status.BAD_REQUEST).build();
 		// validation, has something to update
 		boolean hasUpdate = false;

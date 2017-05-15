@@ -11,6 +11,10 @@ public class UserApplication {
 	private String application_id;
 	@DatabaseField
 	private int archived; // 0 is not, 1 is archived
+	
+	public UserApplication(String application_id) {
+		this.application_id = application_id;
+	}
 
 	public int getArchived() {
 		return archived;

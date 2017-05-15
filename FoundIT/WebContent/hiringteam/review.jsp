@@ -5,10 +5,10 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Candidate Review</title>
+<title>Applicant Review</title>
 </head>
 <body>
-	<h2>Candidate Review</h2>
+	<h2>Applicant Review</h2>
 	<h3>Profile</h3>
 	<table>
 		<tr>
@@ -73,6 +73,7 @@
 	<form method="POST" action='hiringteam?review' name="frmAddUser">
 		<input type="hidden" name="appId" value="<c:out value="${appId}" />" />
 		<input type="hidden" name="jobId" value="<c:out value="${application.jobId}" />" />
+		<input type="hidden" name="reviewId" value="<c:out value="${review.reviewId}" />" />
 		<table>
 			<tr>
 				<td>Details</td>

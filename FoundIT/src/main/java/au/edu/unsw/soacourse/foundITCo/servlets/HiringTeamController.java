@@ -3,7 +3,6 @@ package au.edu.unsw.soacourse.foundITCo.servlets;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.RequestDispatcher;
@@ -16,15 +15,14 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.core.Response;
 
 import au.edu.unsw.soacourse.foundITCo.DBUtil;
-import au.edu.unsw.soacourse.foundITCo.PostingStatus;
 import au.edu.unsw.soacourse.foundITCo.Utils;
 import au.edu.unsw.soacourse.foundITCo.beans.Application;
-import au.edu.unsw.soacourse.foundITCo.beans.ApplicationReviewer;
-import au.edu.unsw.soacourse.foundITCo.beans.ApplicationStatus;
-import au.edu.unsw.soacourse.foundITCo.beans.Keys;
+import au.edu.unsw.soacourse.foundITCo.Keys;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.Review;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
+import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
+import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 import au.edu.unsw.soacourse.foundITCo.beans.UserProfile;
 import au.edu.unsw.soacourse.foundITCo.beans.UserReview;
 import au.edu.unsw.soacourse.foundITCo.dao.ApplicationDao;
@@ -69,55 +67,44 @@ public class HiringTeamController extends HttpServlet {
 			}
 		}
 		
-		if (request.getQueryString().equalsIgnoreCase("applications")) {
+		if (request.getQueryString().split("=")[0].equalsIgnoreCase("applicants")) {
 			
 			List<Application> applications = new ArrayList<Application>();
-			PostingsDao postingsDao = new PostingsDao(Keys.SHORT_VAL_REVIEWER);
+			String jobId = request.getParameter("applicants");
+			applications = ApplicationDao.findApplicationsByPostingId(baseUri, Keys.SHORT_VAL_REVIEWER, jobId);
 			
 			try {
-				
-				List<ApplicationReviewer> applicationReviews = DBUtil.getApplicationReviewerDao().queryBuilder().where().eq(ApplicationReviewer.USER_ID, user.getEmail()).query();
 				List<UserProfile> userProfiles = new ArrayList<>();
-				List<Posting> postings = new ArrayList<Posting>();
 				List<String> appIds = new ArrayList<String>();
-	
-				if (applicationReviews.size() > 0) {
-					
-					for (Iterator<ApplicationReviewer> applicationReview = applicationReviews.iterator(); 
-							applicationReview.hasNext();) {
-						ApplicationReviewer applicationReviewer = (ApplicationReviewer) applicationReview.next();
-						appIds.add(applicationReviewer.getUserApplication().getApplicationId());
-						
-						List<UserProfile> userProfile = DBUtil.getUserProfileDao().queryBuilder().where().
-								eq(UserProfile.USER_ID, applicationReviewer.getUserApplication().getUser().getEmail()).query();
-						if (userProfile.size() > 0)
-							userProfiles.add(userProfile.get(0));
-						else {
-							userProfiles.add(null);
-						}
+				for (Application application: applications) {
+					List<UserApplication> userApplication = DBUtil.getUserApplicationDao().queryForEq("application_id", application.getAppId());
+					List<UserProfile> userProfile = DBUtil.getUserProfileDao().queryBuilder().where().
+							eq(UserProfile.USER_ID, userApplication.get(0).getUser().getEmail()).query();
+					if (userProfile.size() > 0)
+						userProfiles.add(userProfile.get(0));
+					else {
+						userProfiles.add(null);
 					}
-					
-					applications = ApplicationDao.findApplicationsById(baseUri, Keys.SHORT_VAL_REVIEWER, appIds);
-					
-					List<String> jobIds = new ArrayList<String>();
-					for(int i = 0; i < applications.size(); i++) {
-						jobIds.add(applications.get(i).getJobId());
-					}
-					
-					postings = postingsDao.findPostingById(jobIds);
+					appIds.add(application.getAppId());
 				}
 				
-				request.setAttribute("postings", postings);
+				for(Application application: applications) {
+					Utils.trasnfromApplicationStatus(application);
+				}
+				
+				request.setAttribute("applications", applications);
 				request.setAttribute("userProfiles", userProfiles);
 				request.setAttribute("appIds", appIds);
+				
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 //				e.printStackTrace();
 			}
 
-			RequestDispatcher dispatcher = request.getRequestDispatcher("hiringteam/candidate_list.jsp");
+			RequestDispatcher dispatcher = request.getRequestDispatcher("hiringteam/applicants.jsp");
 			dispatcher.forward(request, response);
-		} else if (!request.getParameter("review").isEmpty() && request.getParameter("review") != null) {
+			
+		} else if (request.getQueryString().split("=")[0].equalsIgnoreCase("review")) {
 			List<UserProfile> userProfiles = new ArrayList<UserProfile>();
 			try {
 				userProfiles = DBUtil.getUserProfileDao().queryBuilder().where().eq(UserProfile.USER_ID, request.getParameter("review")).query();
@@ -129,12 +116,9 @@ public class HiringTeamController extends HttpServlet {
 			if (userProfiles.size() > 0)
 				request.setAttribute("userProfile", userProfiles.get(0));
 			
-			List<String> appIds = new ArrayList<String>();
-			appIds.add(request.getParameter("appId"));
-			List<Application> applications = new ArrayList<Application>();
-			applications = ApplicationDao.findApplicationsById(baseUri, Keys.SHORT_VAL_REVIEWER, appIds);
+			Application application = ApplicationDao.findApplicationById(baseUri, Keys.SHORT_VAL_REVIEWER, request.getParameter("appId"));
 			
-			request.setAttribute("application", applications.get(0));
+			request.setAttribute("application", application);
 			request.setAttribute("appId", request.getParameter("appId"));
 			
 			List<UserReview> userReviews = new ArrayList<UserReview>();
@@ -146,17 +130,33 @@ public class HiringTeamController extends HttpServlet {
 				e.printStackTrace();
 			}
 			
-			List<Review> reviews = new ArrayList<Review>();
+			Review review = new Review();
 			if (userReviews.size() > 0){
-				List<String> ids = new ArrayList<String>();
-				ids.add(userReviews.get(0).getReview_id());
-				reviews = ReviewDao.findReviewById(baseUri, Keys.SHORT_VAL_REVIEWER, ids);
+				review = ReviewDao.findReviewById(baseUri, Keys.SHORT_VAL_REVIEWER, userReviews.get(0).getReview_id());
 			}
 			
-			if (reviews.size() > 0)
-				request.setAttribute("review", reviews.get(0));
+			request.setAttribute("review", review);
 			
 			RequestDispatcher dispatcher = request.getRequestDispatcher("hiringteam/review.jsp");
+			dispatcher.forward(request, response);
+		} else if (request.getQueryString().equalsIgnoreCase("postings")) {
+			List<UserPosting> userPostings = new ArrayList<UserPosting>();
+			try {
+				userPostings = DBUtil.getUserPostingDao().queryBuilder().where().eq(UserPosting.USER_ID, user.getEmail()).query();
+			} catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+			PostingsDao postingsDao = new PostingsDao(Keys.SHORT_VAL_REVIEWER);
+			List<Posting> postings = new ArrayList<Posting>();
+			for (UserPosting userPosting: userPostings) {
+				postings.add(postingsDao.findPostingById(userPosting.getPosting_id()));
+			}
+			
+			request.setAttribute("postings", postings);
+
+			RequestDispatcher dispatcher = request.getRequestDispatcher("hiringteam/postings.jsp");
 			dispatcher.forward(request, response);
 		}
 		
@@ -173,40 +173,70 @@ public class HiringTeamController extends HttpServlet {
 	             request.getServerName() +       // "myhost"
 	             ":" +                           // ":"
 	             request.getServerPort();
+
+		String jobId = request.getParameter("jobId");
+		String appId = request.getParameter("appId");
 		
 		if (request.getQueryString().equalsIgnoreCase("review")) {
 			Review review = new Review();
 			review.setComments(request.getParameter("comments"));
 			review.setDecision(request.getParameter("decision"));
 			review.setReviewerDetails(request.getParameter("details"));
-			review.setAppId(request.getParameter("appId"));
+			review.setAppId(appId);
 			// post to job services
-			Response serviceResponse = ReviewDao.createReview(baseUri, Keys.SHORT_VAL_REVIEWER, review);
+			Response serviceResponse = null;
+			if (request.getParameter("reviewId") == null || request.getParameter("reviewId").isEmpty())
+				serviceResponse = ReviewDao.createReview(baseUri, Keys.SHORT_VAL_REVIEWER, review);
+			else 
+				serviceResponse = ReviewDao.updateReview(baseUri, Keys.SHORT_VAL_REVIEWER, 
+						request.getParameter("reviewId"), review);
 			// deal with response
 			int httpStatus = serviceResponse.getStatus();
-			if (201 != httpStatus) {
-				request.setAttribute("errorCode", httpStatus);
-				request.getRequestDispatcher("hiringteam/fail.jsp").forward(request, response);
-			} else {
-				
+			if (201 == httpStatus) {
 				String createdURL = serviceResponse.getLocation().toString();
 				String createdId = createdURL.substring(createdURL.lastIndexOf('/') + 1, createdURL.length());
 				
-				serviceResponse = ApplicationDao.updateStatus(baseUri, createdId, review.getAppId(), String.valueOf(ApplicationStatus.IN_REVIEW));
-					
-				if (201 != httpStatus) {
-					request.setAttribute("errorCode", httpStatus);
-					request.getRequestDispatcher("hiringteam/fail.jsp").forward(request, response);
+				serviceResponse = ApplicationDao.updateStatus(baseUri, createdId, review.getAppId(), "in_review");
+//					
+//				if (201 != httpStatus) {
+//					request.setAttribute("errorCode", httpStatus);
+//					request.getRequestDispatcher("hiringteam/fail.jsp").forward(request, response);
+//				}
+				
+				List<UserPosting> userPostings = new ArrayList<UserPosting>();
+				try {
+					userPostings = DBUtil.getUserPostingDao().queryBuilder().where().eq(UserPosting.POSTING_id, jobId).query();
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
 				
+				int reviewersCount = userPostings.size() - 1;
+				
+				List<Review> reviews = ReviewDao.findReviewsByAppId(baseUri, Keys.SHORT_VAL_REVIEWER, appId);
+				
+				if (reviews.size() == reviewersCount) {
+					boolean recommend = true;
+					for (Review rev: reviews) {
+						if (rev.getDecision().equals("0")) {
+							recommend = false;
+							break;
+						}
+					}
+					
+					if (recommend)
+						ApplicationDao.updateStatus(baseUri, Keys.SHORT_VAL_REVIEWER, appId, "accepted");
+					else
+						ApplicationDao.updateStatus(baseUri, Keys.SHORT_VAL_REVIEWER, appId, "rejected");
+				}
+					
 				User user = Utils.getLoginedUser(request.getSession());
-				String jobId = request.getParameter("jobId");
 				
 				List<Application> applications = ApplicationDao.findApplicationsByPostingId(baseUri, Keys.SHORT_VAL_REVIEWER, jobId);
 			
 				boolean changeStatus = true;
 				for (Application application : applications) {
-					if (!application.getStatus().equals("1")) {
+					if (Integer.parseInt(application.getStatus()) < 2) {
 						changeStatus = false;
 						break;
 					}
@@ -229,7 +259,55 @@ public class HiringTeamController extends HttpServlet {
 					e.printStackTrace();
 				}
 				
-				response.sendRedirect("hiringteam?applications");
+				response.sendRedirect("hiringteam?applicants=" + request.getParameter("jobId"));
+			} else if (204 == httpStatus) {
+				List<UserPosting> userPostings = new ArrayList<UserPosting>();
+				try {
+					userPostings = DBUtil.getUserPostingDao().queryBuilder().where().eq(UserPosting.POSTING_id, jobId).query();
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
+				int reviewersCount = userPostings.size() - 1;
+				
+				List<Review> reviews = ReviewDao.findReviewsByAppId(baseUri, Keys.SHORT_VAL_REVIEWER, appId);
+				
+				if (reviews.size() == reviewersCount) {
+					boolean recommend = true;
+					for (Review rev: reviews) {
+						if (rev.getDecision().equals("0")) {
+							recommend = false;
+							break;
+						}
+					}
+					
+					if (recommend)
+						ApplicationDao.updateStatus(baseUri, Keys.SHORT_VAL_REVIEWER, appId, "accpeted");
+					else
+						ApplicationDao.updateStatus(baseUri, Keys.SHORT_VAL_REVIEWER, appId, "rejected");
+				}
+				
+				List<Application> applications = ApplicationDao.findApplicationsByPostingId(baseUri, Keys.SHORT_VAL_REVIEWER, jobId);
+			
+				boolean changeStatus = true;
+				for (Application application : applications) {
+					if (Integer.parseInt(application.getStatus()) < 2) {
+						changeStatus = false;
+						break;
+					}
+	
+				}
+				
+				if (changeStatus) {
+					PostingsDao postingsDao = new PostingsDao(Keys.SHORT_VAL_REVIEWER);
+					postingsDao.updateStatus(jobId, "processed");
+				}
+				
+				response.sendRedirect("hiringteam?applicants=" + request.getParameter("jobId"));
+			}else {
+				request.setAttribute("errorCode", httpStatus);
+				request.getRequestDispatcher("hiringteam/fail.jsp").forward(request, response);
 			}
 		}
 	}

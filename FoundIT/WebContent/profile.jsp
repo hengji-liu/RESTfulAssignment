@@ -54,8 +54,8 @@
 			<tr>
 				<td>Professional Skill</td>
 				<td>:</td>
-				<td><input type="text" name="experience"
-					value="<c:out value="${userProfile.experience}" />" /></td>
+				<td><input type="text" name="professionalSkill"
+					value="<c:out value="${userProfile.professionalSkill}" />" /></td>
 			</tr>
 			<tr>
 				<td></td>

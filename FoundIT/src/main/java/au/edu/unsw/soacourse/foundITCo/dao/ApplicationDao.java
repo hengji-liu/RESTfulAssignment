@@ -13,7 +13,7 @@ import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
 import au.edu.unsw.soacourse.foundITCo.Utils;
 import au.edu.unsw.soacourse.foundITCo.beans.Application;
-import au.edu.unsw.soacourse.foundITCo.beans.Keys;
+import au.edu.unsw.soacourse.foundITCo.Keys;
 
 public class ApplicationDao {
 
@@ -46,6 +46,24 @@ public class ApplicationDao {
         return applications;
     }
     
+	public static Application findApplicationById(String baseUri, String shortKey, String id) {
+		WebClient client = WebClient.create(baseUri, Arrays.asList(new JacksonJsonProvider()));
+		client.back(true);
+		client.path("/JobServices/applications/" + id);
+        addKeys(client, shortKey);
+		try {
+			Application a = client.get(Application.class);
+			Utils.trasnfromApplicationStatus(a);
+			client.close();
+			return a;
+		} catch (Exception e) {
+			// TODO
+			System.out.println(" this application id is not in the db of jobservices");
+		}
+		client.close();
+		return null;
+	}
+    
     public static List<Application> findApplicationsByPostingId(String baseUri, String shortKey, String pId) {
         List<Application> applications = new ArrayList<>();
         client = WebClient.create(baseUri, Arrays.asList(new JacksonJsonProvider()));
@@ -67,9 +85,9 @@ public class ApplicationDao {
         return applications;
     }
     
-    public static Response updateStatus(String baseUri, String shortKey, String rid, String newStatus){
+    public static Response updateStatus(String baseUri, String shortKey, String appId, String newStatus){
 		WebClient client = WebClient.create(baseUri, Arrays.asList(new JacksonJsonProvider()));
-		client.path("/JobServices/applications/" + newStatus + "/" + rid);
+		client.path("/JobServices/applications/" + newStatus + "/" + appId);
 		addKeys(client, shortKey);
 		client.put(null);
 		Response serviceResponse = client.getResponse();

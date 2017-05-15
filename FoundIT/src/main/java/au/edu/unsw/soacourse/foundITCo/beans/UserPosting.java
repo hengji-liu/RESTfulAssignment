@@ -5,6 +5,9 @@ import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "userPostings")
 public class UserPosting {
+	public static final String USER_ID = "user_id";
+	public static final String POSTING_id = "posting_id";
+	
 	@DatabaseField(id = true)
 	private String id;
 	@DatabaseField(foreign = true, canBeNull = false)

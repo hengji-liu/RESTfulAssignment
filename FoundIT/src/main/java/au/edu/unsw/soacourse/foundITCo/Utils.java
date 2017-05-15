@@ -8,7 +8,6 @@ import javax.servlet.http.HttpSession;
 import au.edu.unsw.soacourse.foundITCo.beans.Application;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.Review;
-import au.edu.unsw.soacourse.foundITCo.beans.ReviewDecisoin;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
 
 public class Utils {
@@ -105,10 +104,10 @@ public class Utils {
 
 	public static void trasnfromReviewDecision(Review r) {
 		switch (Integer.parseInt(r.getDecision())) {
-		case ReviewDecisoin.NOT_RECOMMEND:
+		case ReviewDecision.NOT_RECOMMEND:
 			r.setDecision("Not recommend");
 			break;
-		case ReviewDecisoin.RECOMMEND:
+		case ReviewDecision.RECOMMEND:
 			r.setDecision("Recommend");
 			break;
 		default:
