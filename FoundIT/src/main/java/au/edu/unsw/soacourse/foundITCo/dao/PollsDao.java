@@ -10,6 +10,7 @@ import org.apache.cxf.jaxrs.client.WebClient;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
 import au.edu.unsw.soacourse.foundITCo.Keys;
+import au.edu.unsw.soacourse.foundITCo.beans.Poll;
 
 public class PollsDao {
 
@@ -25,6 +26,21 @@ public class PollsDao {
 	private void addKeys(WebClient client) {
 		client.header(Keys.SECURITY_KEY, Keys.SECURITY_VAL);
 		client.header(Keys.SHORT_KEY, shortKey);
+	}
+
+	public Poll findPollById(String id) {
+		WebClient client = WebClient.create(POLL_URL, Arrays.asList(new JacksonJsonProvider()));
+		client.back(true);
+		client.path("/polls/" + id);
+		addKeys(client);
+		try {
+			Poll p = client.get(Poll.class);
+			return p;
+		} catch (Exception e) {
+			// TODO
+			System.out.println(" this poll id is not in the db of jobservices");
+		}
+		return null;
 	}
 
 	public Response createPoll(String title, String description, String optionsType, String optionsSepBySemicolon,

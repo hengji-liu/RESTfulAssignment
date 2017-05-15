@@ -24,12 +24,15 @@ import au.edu.unsw.soacourse.foundITCo.DBUtil;
 import au.edu.unsw.soacourse.foundITCo.Keys;
 import au.edu.unsw.soacourse.foundITCo.Utils;
 import au.edu.unsw.soacourse.foundITCo.beans.Application;
+import au.edu.unsw.soacourse.foundITCo.beans.Poll;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
 import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
 import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 import au.edu.unsw.soacourse.foundITCo.dao.ApplicationsDao;
+import au.edu.unsw.soacourse.foundITCo.dao.PollsDao;
 import au.edu.unsw.soacourse.foundITCo.dao.PostingsDao;
+import au.edu.unsw.soacourse.foundITCo.dao.VotesDao;
 
 @WebServlet("/jobseeker")
 public class JobseekerController extends HttpServlet {
@@ -38,6 +41,8 @@ public class JobseekerController extends HttpServlet {
 	private Dao<UserApplication, String> userApplicationDao = DBUtil.getUserApplicationDao();
 	private PostingsDao postingsDao = new PostingsDao(Keys.SHORT_VAL_CANDIDATE);
 	private ApplicationsDao applicationsDao = new ApplicationsDao(Keys.SHORT_VAL_CANDIDATE);
+	private PollsDao pollsDao = new PollsDao(Keys.SHORT_VAL_CANDIDATE);
+	private VotesDao votesDao = new VotesDao(Keys.SHORT_VAL_CANDIDATE);
 
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -70,31 +75,98 @@ public class JobseekerController extends HttpServlet {
 
 	private void gotoPostingDetails(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		User userInSession = Utils.getLoginedUser(request.getSession());
 		String pid = request.getParameter("id");
 		Posting p = postingsDao.findPostingById(pid);
-		request.setAttribute("posting", p);
-		request.getRequestDispatcher("jobseeker/postingDetails.jsp").forward(request, response);
-	}
-
-	private void gotoApply(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		String id = request.getParameter("id");
-		User userInSession = Utils.getLoginedUser(request.getSession());
 		// check no duplicate applying
 		UserPosting up = new UserPosting();
-		up.setPosting_id(id);
+		up.setPosting_id(pid);
 		up.setUser(userInSession);
 		try {
 			List<UserPosting> list = userPostingDao.queryForMatching(up);
 			if (list.size() > 0) {
-				request.getRequestDispatcher("jobseeker/home_jobseeker.jsp").forward(request, response);
-			} else {
-				request.setAttribute("id", id);
-				request.getRequestDispatcher("jobseeker/applyForJob.jsp").forward(request, response);
+				request.setAttribute("applied", "applied");
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		request.setAttribute("posting", p);
+		request.getRequestDispatcher("jobseeker/postingDetails.jsp").forward(request, response);
+	}
+
+	private void gotoManageApplication(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		User userInSession = Utils.getLoginedUser(request.getSession());
+		String archived = request.getParameter("archived");
+		try {
+			// get this user's active/archived application ids
+			Map<String, Object> queryParas = new HashMap<>();
+			queryParas.put("user_id", userInSession);
+			queryParas.put("archived", archived);
+			List<UserApplication> userAppList = userApplicationDao.queryForFieldValues(queryParas);
+			// get applications from job services
+			List<Application> applications = new ArrayList<>();
+			for (Iterator iterator = userAppList.iterator(); iterator.hasNext();) {
+				UserApplication userApplication = (UserApplication) iterator.next();
+				String aid = userApplication.getApplication_id();
+				Application a = applicationsDao.findApplicationById(aid);
+				applications.add(a);
+			}
+			// change jobid to meaningful posting info
+			for (Iterator<Application> iterator = applications.iterator(); iterator.hasNext();) {
+				Application application = (Application) iterator.next();
+				String pid = application.getJobId();
+				Posting p = postingsDao.findPostingById(pid);
+				application.setJobId(p.getCompanyName() + "," + p.getPositionType() + "," + p.getLocation() + ","
+						+ p.getDescriptions());
+			}
+			request.setAttribute("list", applications);
+			request.setAttribute("archived", archived);
+			request.getRequestDispatcher("jobseeker/manageApplication.jsp").forward(request, response);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void gotoAppDetails(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String aid = (String) request.getParameter("aid");
+		Application a = applicationsDao.findApplicationById(aid);
+		User userInSession = Utils.getLoginedUser(request.getSession());
+		switch (a.getStatus()) {
+		case "Received": // show posting and enable update
+			try {
+				String postingId = userPostingDao.queryForEq("user_id", userInSession).get(0).getPosting_id();
+				Posting posting = postingsDao.findPostingById(postingId);
+				request.setAttribute("posting", posting);
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			break;
+		case "Accepted": // vote for poll
+			try {
+				String pid = userApplicationDao.queryForEq("application_id", aid).get(0).getPoll_id();
+				Poll poll = pollsDao.findPollById(pid);
+				// check have voted or not
+				if (null == poll.getVotes() || poll.getVotes().size() == 0) {
+					String optionStr = poll.getOptions();
+					String[] options = optionStr.split(";");
+					request.setAttribute("options", options);
+					request.setAttribute("poll", poll);
+				} else {
+					String chosenOption = poll.getVotes().get(0).getChosenOption();
+					request.setAttribute("chosenOption", chosenOption);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			break;
+		default:
+			break;
+		}
+
+		request.setAttribute("application", a);
+		request.getRequestDispatcher("jobseeker/appDetails.jsp").forward(request, response);
 	}
 
 	private void createApplication(HttpServletRequest request, HttpServletResponse response)
@@ -138,51 +210,6 @@ public class JobseekerController extends HttpServlet {
 		}
 	}
 
-	private void gotoManageApplication(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		User userInSession = Utils.getLoginedUser(request.getSession());
-		String archived = request.getParameter("archived");
-		try {
-			// get this user's active/archived application ids
-			Map<String, Object> queryParas = new HashMap<>();
-			queryParas.put("user_id", userInSession);
-			queryParas.put("archived", archived);
-			List<UserApplication> userAppList = userApplicationDao.queryForFieldValues(queryParas);
-			// get applications from job services
-			List<Application> applications = new ArrayList<>();
-			for (Iterator iterator = userAppList.iterator(); iterator.hasNext();) {
-				UserApplication userApplication = (UserApplication) iterator.next();
-				String aid = userApplication.getApplication_id();
-				Application a = applicationsDao.findApplicationById(aid);
-				applications.add(a);
-			}
-			// change jobid to meaningful posting info
-			for (Iterator<Application> iterator = applications.iterator(); iterator.hasNext();) {
-				Application application = (Application) iterator.next();
-				String pid = application.getJobId();
-				Posting p = postingsDao.findPostingById(pid);
-				application.setJobId(p.getCompanyName() + "," + p.getPositionType() + "," + p.getLocation() + ","
-						+ p.getDescriptions());
-			}
-			request.setAttribute("list", applications);
-			if ("0".equals(archived)) {
-				request.getRequestDispatcher("jobseeker/manageApplication.jsp").forward(request, response);
-			} else {
-				request.getRequestDispatcher("jobseeker/manageArchived.jsp").forward(request, response);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void gotoUpdateApplication(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		String aid = request.getParameter("aid");
-		Application app = applicationsDao.findApplicationById(aid);
-		request.setAttribute("application", app);
-		request.getRequestDispatcher("jobseeker/updateApplication.jsp").forward(request, response);
-	}
-
 	private void updateApplication(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		String aid = request.getParameter("id");
@@ -205,9 +232,19 @@ public class JobseekerController extends HttpServlet {
 
 	}
 
+	private void voteForPoll(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		User userInSession = Utils.getLoginedUser(request.getSession());
+		String pid = request.getParameter("pid");
+		String selectedTime = request.getParameter("selectedTime");
+		// post vote to poll services
+		Response serviceResponse = votesDao.createVote(pid, userInSession.getEmail(), selectedTime);
+		request.getRequestDispatcher("jobseeker?method=gotoManageApplication&archived=0").forward(request, response);
+	}
+
 	private void archive(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		String aid = request.getParameter("id");
+		String aid = request.getParameter("aid");
 		User userInSession = Utils.getLoginedUser(request.getSession());
 		UserApplication ua = new UserApplication();
 		ua.setUser(userInSession);

@@ -3,7 +3,6 @@ package au.edu.unsw.soacourse.foundITCo.servlets;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,18 +18,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 
-import org.springframework.http.converter.feed.AtomFeedHttpMessageConverter;
-
 import com.j256.ormlite.dao.Dao;
 
 import au.edu.unsw.soacourse.foundITCo.ApplicationStatus;
 import au.edu.unsw.soacourse.foundITCo.DBUtil;
 import au.edu.unsw.soacourse.foundITCo.Keys;
 import au.edu.unsw.soacourse.foundITCo.Utils;
-import au.edu.unsw.soacourse.foundITCo.beans.AppPoll;
 import au.edu.unsw.soacourse.foundITCo.beans.Application;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
+import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
 import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 import au.edu.unsw.soacourse.foundITCo.dao.ApplicationsDao;
 import au.edu.unsw.soacourse.foundITCo.dao.PollsDao;
@@ -41,7 +38,7 @@ public class ManagerController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Dao<UserPosting, String> userPostingDao = DBUtil.getUserPostingDao();
 	private Dao<User, String> userDao = DBUtil.getUserDao();
-	private Dao<AppPoll, String> appPollDao = DBUtil.getAppPollDao();
+	private Dao<UserApplication, String> userApplicationDao = DBUtil.getUserApplicationDao();
 	private PostingsDao postingsDao = new PostingsDao(Keys.SHORT_VAL_MANAGER);
 	private ApplicationsDao applicationsDao = new ApplicationsDao(Keys.SHORT_VAL_MANAGER);
 	private PollsDao pollsDao = new PollsDao(Keys.SHORT_VAL_MANAGER);
@@ -129,6 +126,10 @@ public class ManagerController extends HttpServlet {
 		String pid = request.getParameter("pid");
 		Posting posting = postingsDao.findPostingById(pid);
 		List<Application> applications = applicationsDao.findApplicationByPostingId(pid);
+		for (Iterator iterator = applications.iterator(); iterator.hasNext();) {
+			Application application = (Application) iterator.next();
+			Utils.trasnfromApplicationStatus(application);
+		}
 		int size = applications.size();
 		request.setAttribute("size", size); // decides if can be updated
 		request.setAttribute("applications", applications);
@@ -251,9 +252,9 @@ public class ManagerController extends HttpServlet {
 				}
 				break;
 			case "sent_invitations":
-				String option1 = (String) request.getAttribute("option1");
-				String option2 = (String) request.getAttribute("option2");
-				String option3 = (String) request.getAttribute("option3");
+				String option1 = (String) request.getParameter("option1");
+				String option2 = (String) request.getParameter("option2");
+				String option3 = (String) request.getParameter("option3");
 				String optionsSepBySemicolon = option1 + ";" + option2 + ";" + option3;
 				List<Application> apps = applicationsDao.findApplicationByPostingId(pid);
 				for (Iterator iterator = apps.iterator(); iterator.hasNext();) {
@@ -264,13 +265,11 @@ public class ManagerController extends HttpServlet {
 								"DATE", optionsSepBySemicolon, null, null);
 						String createdURL = pollResponse.getLocation().getPath();
 						String createdId = createdURL.substring(createdURL.lastIndexOf('/') + 1, createdURL.length());
-						// store <appid, poll_id>
-						AppPoll ap = new AppPoll();
-						ap.setId(UUID.randomUUID().toString());
-						ap.setApplication_id(application.getAppId());
-						ap.setPoll_id(createdId);
+						// link poll_id with its application
 						try {
-							appPollDao.create(ap);
+							UserApplication ua = userApplicationDao.queryForEq("appliaction_id", application).get(0);
+							ua.setPoll_id(createdId);
+							userApplicationDao.update(ua);
 						} catch (SQLException e) {
 							e.printStackTrace();
 						}

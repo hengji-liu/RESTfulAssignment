@@ -31,27 +31,51 @@
 			<td>${posting.descriptions }</td>
 		</tr>
 	</table>
-	<br/>
-		<c:choose>
-			<c:when test="${size == 0}">
-				<a href="manager?method=gotoUpdatePosting&pid=${posting.jobId }">Click
-					to modify this posting</a>
-			</c:when>
-			<c:otherwise>
-				<table border="1">
-				<tr>
-					<th>Candidate details</th>
-					<th>Cover letter</th>
-				</tr>
-					<c:forEach var="app" items="${applications}">
-					<tr>
-						<td>${app.candidateDetails }</td>
-						<td>${app.coverLetter }</td>
-					</tr>
-					</c:forEach>
-				</table>
-			</c:otherwise>
-		</c:choose>
+	<br />
+	<c:choose>
+		<c:when test="${size == 0}">
+			<a href="manager?method=gotoUpdatePosting&pid=${posting.jobId }">Click
+				to modify this posting</a>
+		</c:when>
+		<c:otherwise>
+
+
+			<c:choose>
+				<c:when test="${posting.status == 'Processed'}">
+					<table border="1">
+						<tr>
+							<th>Candidate details</th>
+							<th>Cover letter</th>
+							<th>Reviewers Decision</th>
+						</tr>
+						<c:forEach var="app" items="${applications}">
+							<tr>
+								<td>${app.candidateDetails }</td>
+								<td>${app.coverLetter }</td>
+								<td>${app.status }</td>
+							</tr>
+						</c:forEach>
+					</table>
+				</c:when>
+				<c:otherwise>
+					<table border="1">
+						<tr>
+							<th>Candidate details</th>
+							<th>Cover letter</th>
+						</tr>
+						<c:forEach var="app" items="${applications}">
+							<tr>
+								<td>${app.candidateDetails }</td>
+								<td>${app.coverLetter }</td>
+							</tr>
+						</c:forEach>
+					</table>
+
+				</c:otherwise>
+			</c:choose>
+
+		</c:otherwise>
+	</c:choose>
 
 
 </body>

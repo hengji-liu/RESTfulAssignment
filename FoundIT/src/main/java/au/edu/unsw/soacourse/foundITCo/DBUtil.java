@@ -3,17 +3,16 @@ package au.edu.unsw.soacourse.foundITCo;
 import java.io.IOException;
 import java.sql.SQLException;
 
-import au.edu.unsw.soacourse.foundITCo.beans.AppPoll;
-import au.edu.unsw.soacourse.foundITCo.beans.User;
-import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
-import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
-import au.edu.unsw.soacourse.foundITCo.beans.UserProfile;
-
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
+
+import au.edu.unsw.soacourse.foundITCo.beans.User;
+import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
+import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
+import au.edu.unsw.soacourse.foundITCo.beans.UserProfile;
 
 public class DBUtil {
 	private static final String DATABASE_URL = "jdbc:sqlite:"
@@ -24,33 +23,6 @@ public class DBUtil {
 	private static Dao<UserProfile, String> userProfileDao;
 	private static Dao<UserPosting, String> userPostingDao;
 	private static Dao<UserApplication, String> userApplicationDao;
-	private static Dao<AppPoll, String> appPollDao;
-
-	public static Dao<AppPoll, String> getAppPollDao() {
-		try {
-			connectionSource = new JdbcConnectionSource(DATABASE_URL);
-		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-
-		if (appPollDao == null) {
-			try {
-
-				appPollDao = DaoManager.createDao(connectionSource, AppPoll.class);
-				if (!appPollDao.isTableExists()) {
-					TableUtils.createTable(connectionSource, AppPoll.class);
-				}
-				// else {
-				// TableUtils.dropTable(connectionSource, User.class, true);
-				// }
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return appPollDao;
-	}
 
 	public static Dao<UserApplication, String> getUserApplicationDao() {
 		try {

@@ -8,7 +8,6 @@
 <meta http-equiv="Content-Type" content="text/html; charset==UTF-8">
 <title>Job postings Details</title>
 </head>
-<a href="jobseeker?method=gotoApply&id=${posting.jobId }">Apply for this job</a>
 <body>
 	<table border="1">
 		<tr>
@@ -31,7 +30,29 @@
 			<td>Descriptions</td>
 			<td>${posting.descriptions }</td>
 		</tr>
-
 	</table>
+
+	<br />
+
+	<c:choose>
+		<c:when test="${empty applied }">
+			<form
+				action="jobseeker?method=createApplication&id=${posting.jobId }"
+				method="post">
+				<table>
+					<tr>
+						<td>Candidate Details</td>
+						<td><input type="text" name="candidateDetails"></td>
+					</tr>
+					<tr>
+						<td>Cover Letter</td>
+						<td><input type="text" name="coverLetter"></td>
+					</tr>
+				</table>
+				<input type="submit" value="Apply">
+			</form>
+		</c:when>
+		<c:otherwise>You have applied for this job.</c:otherwise>
+	</c:choose>
 </body>
 </html>

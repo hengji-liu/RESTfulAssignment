@@ -10,7 +10,17 @@ public class UserApplication {
 	@DatabaseField
 	private String application_id;
 	@DatabaseField
+	private String poll_id; // poll to set interview time
+	@DatabaseField
 	private int archived; // 0 is not, 1 is archived
+
+	public String getPoll_id() {
+		return poll_id;
+	}
+
+	public void setPoll_id(String poll_id) {
+		this.poll_id = poll_id;
+	}
 
 	public int getArchived() {
 		return archived;
