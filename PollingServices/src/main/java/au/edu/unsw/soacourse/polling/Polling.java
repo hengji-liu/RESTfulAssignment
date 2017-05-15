@@ -96,13 +96,6 @@ public class Polling {
 		return voteDao;
 	}
     
-//    @GET
-//    @Path("/votes/")
-//    @Produces("text/plain")
-//    public String getVotes(@PathParam("input") String input) {
-//        return input;
-//    }
-    
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Path("/polls/{pollId}/votes")

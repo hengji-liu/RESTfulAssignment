@@ -159,7 +159,7 @@ public class ReviewServices {
 		}
 		// validation, rId in payload must be null or empty
 		String rIdPayload = obj.getReviewId();
-		if (null != rIdPayload || !"".equals(rIdPayload))
+		if (null != rIdPayload)
 			return Response.status(Status.BAD_REQUEST).build();
 		// validation, has something to update
 		boolean hasUpdate = false;

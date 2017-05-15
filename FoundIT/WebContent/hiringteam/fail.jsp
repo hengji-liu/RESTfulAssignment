@@ -1,18 +1,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<title>Sign up failed</title>
+<meta http-equiv="Content-Type" content="text/html; charset==UTF-8">
+<title>Create/update a review</title>
 </head>
 <body>
-
-	<h3>Sign up failed, please pick different username.</h3>
-
-	<ul>
-		<li><a href="signup">Back</a></li>
-		<li><a href="index.jsp">Home</a></li>
-	</ul>
-	
+	http fail, error code : ${errorCode}
 </body>
 </html>

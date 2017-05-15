@@ -1,7 +1,6 @@
 package au.edu.unsw.soacourse.foundITCo.servlets;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.SQLException;
 
 import javax.servlet.RequestDispatcher;
@@ -44,7 +43,6 @@ public class SignUpController extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		response.setContentType("text/html;charset=UTF-8");
-		PrintWriter out = response.getWriter();
 
 		User newUser = new User();
 		newUser.setEmail(request.getParameter("email"));
@@ -54,20 +52,20 @@ public class SignUpController extends HttpServlet {
 
 		try {
 			int success = DBUtil.getUserDao().create(newUser);
-
-			DBUtil.closeConnection();
 			
 			if (success > 0) {
 				response.sendRedirect("success.jsp");
 			} else {
-				out.println("Failed");
+				RequestDispatcher dispatcher = request.getRequestDispatcher("error_signup.jsp");
+				dispatcher.forward(request, response);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 			RequestDispatcher dispatcher = request.getRequestDispatcher("error_signup.jsp");
 			dispatcher.forward(request, response);
-			// TODO Auto-generated catch block
 		}
+
+		DBUtil.closeConnection();
 	}
 
 }

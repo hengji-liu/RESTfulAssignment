@@ -9,10 +9,9 @@ import au.edu.unsw.soacourse.foundITCo.beans.Application;
 import au.edu.unsw.soacourse.foundITCo.beans.Posting;
 import au.edu.unsw.soacourse.foundITCo.beans.Review;
 import au.edu.unsw.soacourse.foundITCo.beans.User;
+import au.edu.unsw.soacourse.foundITCo.dao.ReviewDecision;
 
 public class Utils {
-	public static final String ATT_NAME_CONNECTION = "ATTRIBUTE_FOR_CONNECTION";
-
 	private static final String ATT_NAME_USER_NAME = "ATTRIBUTE_FOR_STORE_USER_NAME_IN_COOKIE";
 
 	// Store user info in Session.
@@ -87,16 +86,16 @@ public class Utils {
 
 	public static void trasnfromApplicationStatus(Application a) {
 		switch (Integer.parseInt(a.getStatus())) {
-		case ApplicationStatus.RECEIVED:
-			a.setStatus("Received");
-			break;
-		case ApplicationStatus.IN_REVIEW:
-			a.setStatus("In review");
-			break;
-		case ApplicationStatus.ACCEPTED:
+		case ApplicationsStatus.ACCEPTED:
 			a.setStatus("Accepted");
 			break;
-		case ApplicationStatus.REJECTED:
+		case ApplicationsStatus.IN_REVIEW:
+			a.setStatus("In review");
+			break;
+		case ApplicationsStatus.RECEIVED:
+			a.setStatus("Received");
+			break;
+		case ApplicationsStatus.REJECTED:
 			a.setStatus("Rejected");
 			break;
 		default:
@@ -106,11 +105,11 @@ public class Utils {
 
 	public static void trasnfromReviewDecision(Review r) {
 		switch (Integer.parseInt(r.getDecision())) {
-		case ReviewDecisoin.RECOMMEND:
-			r.setDecision("Recommended");
+		case ReviewDecision.NOT_RECOMMEND:
+			r.setDecision("Not recommend");
 			break;
-		case ReviewDecisoin.NOT_RECOMMEND:
-			r.setDecision("Not recommended");
+		case ReviewDecision.RECOMMEND:
+			r.setDecision("Recommend");
 			break;
 		default:
 			break;

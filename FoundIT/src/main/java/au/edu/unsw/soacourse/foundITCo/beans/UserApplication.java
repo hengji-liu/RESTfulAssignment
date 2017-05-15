@@ -13,6 +13,10 @@ public class UserApplication {
 	private String poll_id; // poll to set interview time
 	@DatabaseField
 	private int archived; // 0 is not, 1 is archived
+	
+	public UserApplication(String application_id) {
+		this.application_id = application_id;
+	}
 
 	public String getPoll_id() {
 		return poll_id;

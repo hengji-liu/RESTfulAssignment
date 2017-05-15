@@ -13,6 +13,7 @@ import au.edu.unsw.soacourse.foundITCo.beans.User;
 import au.edu.unsw.soacourse.foundITCo.beans.UserApplication;
 import au.edu.unsw.soacourse.foundITCo.beans.UserPosting;
 import au.edu.unsw.soacourse.foundITCo.beans.UserProfile;
+import au.edu.unsw.soacourse.foundITCo.beans.UserReview;
 
 public class DBUtil {
 	private static final String DATABASE_URL = "jdbc:sqlite:"
@@ -20,9 +21,10 @@ public class DBUtil {
 
 	private static ConnectionSource connectionSource;
 	private static Dao<User, String> userDao;
-	private static Dao<UserProfile, String> userProfileDao;
+	private static Dao<UserProfile, Integer> userProfileDao;
 	private static Dao<UserPosting, String> userPostingDao;
 	private static Dao<UserApplication, String> userApplicationDao;
+    private static Dao<UserReview, Integer> userReviewDao;
 
 	public static Dao<UserApplication, String> getUserApplicationDao() {
 		try {
@@ -102,7 +104,7 @@ public class DBUtil {
 		return userDao;
 	}
 
-	public static Dao<UserProfile, String> getUserProfileDao() {
+	public static Dao<UserProfile, Integer> getUserProfileDao() {
 		try {
 			connectionSource = new JdbcConnectionSource(DATABASE_URL);
 		} catch (SQLException e1) {
@@ -126,6 +128,33 @@ public class DBUtil {
 			}
 		}
 		return userProfileDao;
+	}
+
+
+	public static Dao<UserReview, Integer> getUserReviewDao() {
+		try {
+			connectionSource = new JdbcConnectionSource(DATABASE_URL);
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		if (userReviewDao == null) {
+			try {
+
+				userReviewDao = DaoManager.createDao(connectionSource, UserReview.class);
+				if (!userReviewDao.isTableExists()) {
+					TableUtils.createTable(connectionSource, UserReview.class);
+				}
+				// else {
+				// TableUtils.dropTable(connectionSource, Poll.class, true);
+				// }
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return userReviewDao;
 	}
 
 	public static void closeConnection() throws IOException {
