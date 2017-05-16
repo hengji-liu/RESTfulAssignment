@@ -33,7 +33,7 @@
 				<td>Status</td>
 				<td><select name="status">
 						<option value="1">Open</option>
-						<option value="processed">Closed</option>
+						<option value="5">Closed</option>
 				</select></td>
 			</tr>
 		</table>

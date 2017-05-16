@@ -171,7 +171,11 @@ public class PostingsDao {
 					+ " OR (descriptions LIKE '%" + keyword + "%')" + " )");
 		}
 		if (null != status && !"".equals(status)) {
-			sql.append(" AND (status=" + status + ")");
+			if ("5".equals(status)) {
+				sql.append(" AND (status>1)");
+			} else {
+				sql.append(" AND (status=" + status + ")");
+			}
 		}
 		sql.append(';');
 		System.out.println(sql.toString());

@@ -76,17 +76,21 @@ public class JobseekerController extends HttpServlet {
 		User userInSession = Utils.getLoginedUser(request.getSession());
 		String pid = request.getParameter("id");
 		Posting p = postingsDao.findPostingById(pid);
-		// check no duplicate applying
-		try {
-			Map<String, Object> queryParas = new HashMap<>();
-			queryParas.put("user_id", userInSession);
-			queryParas.put("posting_id", pid);
-			List<UserApplication> list = userApplicationDao.queryForFieldValues(queryParas);
-			if (list.size() > 0) {
-				request.setAttribute("applied", "applied");
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
+		if (p.getStatus().equals("Open")) {
+			// check no duplicate applying
+			try {
+				Map<String, Object> queryParas = new HashMap<>();
+				queryParas.put("user_id", userInSession);
+				queryParas.put("posting_id", pid);
+				List<UserApplication> list = userApplicationDao.queryForFieldValues(queryParas);
+				if (list.size() > 0) {
+					request.setAttribute("cannotapply", "You have applied for this job.");
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}			
+		}else {// job not open
+			request.setAttribute("cannotapply", "This job is not open.");
 		}
 		request.setAttribute("posting", p);
 		request.getRequestDispatcher("jobseeker/postingDetails.jsp").forward(request, response);

@@ -35,7 +35,7 @@
 	<br />
 
 	<c:choose>
-		<c:when test="${empty applied }">
+		<c:when test="${empty cannotapply }">
 			<form
 				action="jobseeker?method=createApplication&id=${posting.jobId }"
 				method="post">
@@ -52,7 +52,7 @@
 				<input type="submit" value="Apply">
 			</form>
 		</c:when>
-		<c:otherwise>You have applied for this job.</c:otherwise>
+		<c:otherwise>${cannotapply }</c:otherwise>
 	</c:choose>
 </body>
 </html>
