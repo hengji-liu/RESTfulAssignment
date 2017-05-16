@@ -136,9 +136,14 @@ public class HiringTeamController extends HttpServlet {
 			
 			Review review = new Review();
 			if (userReviews.size() > 0){
-				review = ReviewDao.findReviewById(baseUri, Keys.SHORT_VAL_REVIEWER, userReviews.get(0).getReview_id());
-			}
-			
+				for (UserReview userReview: userReviews) {
+					Review temp = ReviewDao.findReviewById(baseUri, Keys.SHORT_VAL_REVIEWER, userReview.getReview_id());
+					if (temp.getAppId() == request.getParameter("appId")) {
+						review = temp;
+						break;
+					}
+				}
+			}			
 			request.setAttribute("review", review);
 			
 			RequestDispatcher dispatcher = request.getRequestDispatcher("hiringteam/review.jsp");

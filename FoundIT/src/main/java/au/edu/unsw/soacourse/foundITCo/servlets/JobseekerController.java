@@ -141,12 +141,15 @@ public class JobseekerController extends HttpServlet {
 				String pid = userApplicationDao.queryForEq("application_id", aid).get(0).getPoll_id();
 				Poll poll = pollsDao.findPollById(pid);
 				// check have voted or not
-				if (null == poll.getVotes() || poll.getVotes().size() == 0) {
+				if (null == poll) { // no poll yet
+					request.setAttribute("pollNotYet", "pollnotyet");
+				} else if (null == poll.getVotes() || poll.getVotes().size() == 0) {
+					// show poll
 					String optionStr = poll.getOptions();
 					String[] options = optionStr.split(";");
 					request.setAttribute("options", options);
 					request.setAttribute("poll", poll);
-				} else {
+				} else { // show vote
 					String chosenOption = poll.getVotes().get(0).getChosenOption();
 					request.setAttribute("chosenOption", chosenOption);
 				}

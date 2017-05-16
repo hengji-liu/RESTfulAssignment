@@ -71,6 +71,7 @@
 
 	<c:if test="${application.status == 'Accepted'}">
 		<c:choose>
+			<c:when test="${not empty pollNotYet }">Please wait until the manager sets an interview time for you.</c:when>
 			<c:when test="${not empty chosenOption}">Your chosen interview time is ${chosenOption }.</c:when>
 			<c:otherwise>
 				<h1>Vote For Interview Time</h1>
